@@ -2,7 +2,10 @@
 include:
   - board: cosmos_lemon_wireless
     shield: cosmotyl_left
-    snippet: zmk-usb-logging
+
   - board: cosmos_lemon_wireless
     shield: cosmotyl_right
-    snippet: zmk-usb-logging
+
+  - board: cosmos_lemon_wireless
+    shield: settings_reset
+    
