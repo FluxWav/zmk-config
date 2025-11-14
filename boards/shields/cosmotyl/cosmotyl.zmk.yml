@@ -1,0 +1,11 @@
+file_format: "1"
+id: cosmotyl
+name: cosmotyl
+type: shield
+url: https://github.com/rianadon/Cosmos-Keyboards
+features:
+  - keys
+  - studio
+siblings:
+  - cosmotyl_left
+  - cosmotyl_right

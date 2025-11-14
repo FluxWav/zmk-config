@@ -1,0 +1,10 @@
+
+#include "cosmotyl.dtsi"
+
+/ {
+    bootloader_key: bootloader_key {
+        compatible = "zmk,boot-magic-key";
+        key-position = <12>;
+        jump-to-bootloader;
+    };
+};
