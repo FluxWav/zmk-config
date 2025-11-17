@@ -45,6 +45,11 @@
             bindings = <&to 9>;
             key-positions = <0 11>;
         };
+
+        mouse {
+            bindings = <&tog 3>;
+            key-positions = <40 41>;
+        };
     };
 
     keymap {
@@ -225,12 +230,5 @@
         };
     };
 
-    conditional_layers {
-        compatible = "zmk,conditional-layers";
-
-        mouse {
-            if-layers = <5 2>;
-            then-layer = <3>;
-        };
-    };
+    conditional_layers { compatible = "zmk,conditional-layers"; };
 };
