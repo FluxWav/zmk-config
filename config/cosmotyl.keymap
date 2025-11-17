@@ -38,6 +38,15 @@
         };
     };
 
+    combos {
+        compatible = "zmk,combos";
+
+        diag {
+            bindings = <&to 9>;
+            key-positions = <0 11>;
+        };
+    };
+
     keymap {
         compatible = "zmk,keymap";
 
@@ -48,28 +57,43 @@
 &kp BACKSPACE  &kp A  &kp R     &kp S     &kp T  &kp G  &kp M  &kp N  &kp E      &kp I      &kp O     &kp SQT
                &kp Z  &kp X     &kp C     &kp D  &kp V  &kp K  &kp H  &kp COMMA  &kp DOT    &kp FSLH
                       &kp LBKT  &kp RBKT                              &kp MINUS  &kp EQUAL
-                                                                                                                  &none       &sk LEFT_SHIFT
-                                                                                                                  &mo 9       &mo 4
-                                                                                                                  &kp SPACE   &kp LEFT_ALT
-                                                                                                                  &none       &kp LCTRL
-                                                                                                                  &kp DELETE  &caps_word
-                                                                                                                  &kp ENTER   &mt LG(TAB) ESCAPE
+                                                                                                                  &none      &sk LEFT_SHIFT
+                                                                                                                  &sl 2      &sl 5
+                                                                                                                  &kp SPACE  &kp LEFT_ALT
+                                                                                                                  &none      &sk LCTRL
+                                                                                                                  &sl 1      &sl 1
+                                                                                                                  &kp ENTER  &mt LG(TAB) ESCAPE
+            >;
+        };
+
+        lower {
+            bindings = <
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+        &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+                &trans  &trans                                  &trans  &trans
+                                                                                                  &trans  &caps_word
+                                                                                                  &tog 2  &tog 5
+                                                                                                  &trans  &trans
+                                                                                                  &trans  &trans
+                                                                                                  &to 0   &to 0
+                                                                                                  &trans  &trans
             >;
         };
 
         nav_layer {
             display-name = "Nav";
             bindings = <
-&trans  &trans    &trans    &trans     &trans     &trans  &kp LC(Z)  &kp LC(V)  &kp LC(C)  &kp LC(X)  &kp INS   &trans
-&trans  &kp LGUI  &kp LALT  &kp LCTRL  &kp LSHFT  &trans  &kp LEFT   &kp DOWN   &kp UP     &kp RIGHT  &kp CAPS  &trans
-        &trans    &trans    &trans     &trans     &trans  &kp HOME   &kp PG_DN  &kp PG_UP  &kp END    &trans
-                  &trans    &trans                                              &trans     &trans
-                                                                                                                          &trans     &trans
-                                                                                                                          &trans     &trans
-                                                                                                                          &trans     &trans
-                                                                                                                          &kp ENTER  &kp BSPC
-                                                                                                                          &kp DEL    &trans
-                                                                                                                          &trans     &trans
+&kp ESCAPE  &trans    &trans    &trans     &trans     &trans  &kp LC(X)  &kp LC(Z)  &kp LC(Y)      &trans       &kp INS    &trans
+&trans      &sk LGUI  &sk LALT  &sk LCTRL  &sk LSHFT  &trans  &kp LC(C)  &kp LEFT   &kp DOWN       &kp UP       &kp RIGHT  &kp DEL
+            &trans    &trans    &trans     &trans     &trans  &kp LC(V)  &kp HOME   &kp PAGE_DOWN  &kp PAGE_UP  &kp END
+                      &trans    &trans                                              &trans         &trans
+                                                                                                                                      &trans  &trans
+                                                                                                                                      &trans  &trans
+                                                                                                                                      &trans  &trans
+                                                                                                                                      &trans  &trans
+                                                                                                                                      &trans  &trans
+                                                                                                                                      &trans  &trans
             >;
         };
 
@@ -96,12 +120,12 @@
 &trans  &kp LGUI  &kp LALT  &kp LCTRL  &kp LSHFT  &trans  &trans  &kp C_PREV  &kp C_VOL_DN  &kp C_VOL_UP  &kp C_NEXT  &trans
         &trans    &trans    &trans     &trans     &trans  &trans  &trans      &trans        &trans        &trans
                   &trans    &trans                                            &trans        &trans
-                                                                                                                                &trans      &trans
-                                                                                                                                &trans      &trans
-                                                                                                                                &trans      &trans
-                                                                                                                                &kp C_STOP  &kp C_PP
-                                                                                                                                &kp C_MUTE  &trans
-                                                                                                                                &trans      &trans
+                                                                                                                                &trans  &trans
+                                                                                                                                &trans  &trans
+                                                                                                                                &trans  &trans
+                                                                                                                                &trans  &trans
+                                                                                                                                &trans  &trans
+                                                                                                                                &trans  &trans
             >;
         };
 
@@ -117,21 +141,21 @@
                                                                                                             &trans  &trans
                                                                                                             &trans  &trans
                                                                                                             &trans  &trans
-                                                                                                            &trans  &sl 8
+                                                                                                            &trans  &trans
             >;
         };
 
         numpad {
-            display-name = "Num";
+            display-name = "Numpad";
             bindings = <
 &trans  &kp LBKT   &kp N7   &kp N8  &kp N9  &kp RBKT  &trans  &kp N7  &kp N8     &kp N9   &trans     &trans
 &trans  &kp N1     &kp N2   &kp N3  &kp N4  &kp N5    &kp N6  &kp N4  &kp N5     &kp N6   &kp MINUS  &trans
         &kp GRAVE  &kp N1   &kp N2  &kp N3  &kp BSLH  &trans  &kp N1  &kp N2     &kp N3   &kp FSLH
                    &kp DOT  &kp N0                                    &kp COMMA  &kp DOT
-                                                                                                               &trans  &kp SPACE
                                                                                                                &trans  &trans
-                                                                                                               &trans  &kp N0
-                                                                                                               &trans  &kp ENTER
+                                                                                                               &trans  &trans
+                                                                                                               &trans  &trans
+                                                                                                               &trans  &trans
                                                                                                                &trans  &trans
                                                                                                                &trans  &trans
             >;
@@ -144,28 +168,28 @@
 &trans  &kp COLON  &kp DLLR  &kp PRCNT  &kp CARET  &kp PLUS  &trans  &kp RSHFT  &kp RCTRL  &kp RALT  &kp RGUI  &trans
         &kp TILDE  &kp EXCL  &kp AT     &kp HASH   &kp PIPE  &trans  &trans     &trans     &trans    &trans
                    &kp LPAR  &kp RPAR                                           &trans     &trans
-                                                                                                                         &kp LPAR  &kp RPAR
-                                                                                                                         &trans    &trans
-                                                                                                                         &trans    &trans
-                                                                                                                         &trans    &trans
-                                                                                                                         &trans    &trans
-                                                                                                                         &trans    &trans
+                                                                                                                         &trans  &trans
+                                                                                                                         &trans  &trans
+                                                                                                                         &trans  &trans
+                                                                                                                         &trans  &trans
+                                                                                                                         &trans  &trans
+                                                                                                                         &trans  &trans
             >;
         };
 
         fun_layer {
             display-name = "Fun";
             bindings = <
-&trans  &kp F12  &kp F7     &kp F8     &kp F9  &kp PSCRN        &trans  &trans     &trans     &trans    &trans    &trans
-&trans  &kp F11  &kp F4     &kp F5     &kp F6  &kp SLCK         &trans  &kp RSHFT  &kp RCTRL  &kp RALT  &kp RGUI  &trans
-        &kp F10  &kp F1     &kp F2     &kp F3  &kp PAUSE_BREAK  &trans  &trans     &trans     &trans    &trans
-                 &kp K_APP  &kp SPACE                                              &trans     &trans
-                                                                                                                            &trans  &trans
-                                                                                                                            &trans  &trans
-                                                                                                                            &trans  &trans
-                                                                                                                            &trans  &trans
-                                                                                                                            &trans  &trans
-                                                                                                                            &trans  &trans
+&trans  &kp F12  &kp F7     &kp F8     &kp F9  &kp PSCRN        &trans  &kp F7  &kp F8  &kp F9  &kp F10  &trans
+&trans  &kp F11  &kp F4     &kp F5     &kp F6  &kp SLCK         &trans  &kp F4  &kp F5  &kp F6  &kp F11  &trans
+        &kp F10  &kp F1     &kp F2     &kp F3  &kp PAUSE_BREAK  &trans  &kp F1  &kp F2  &kp F3  &kp F12
+                 &kp K_APP  &kp SPACE                                           &trans  &trans
+                                                                                                                   &trans  &trans
+                                                                                                                   &trans  &trans
+                                                                                                                   &trans  &trans
+                                                                                                                   &trans  &trans
+                                                                                                                   &trans  &trans
+                                                                                                                   &trans  &trans
             >;
         };
 
@@ -185,21 +209,6 @@
             >;
         };
 
-        magic2 {
-            bindings = <
-&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
-        &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &sl 8
-                &trans  &trans                                  &trans  &trans
-                                                                                                  &trans        &to 2
-                                                                                                  &trans        &to 1
-                                                                                                  &trans        &to 3
-                                                                                                  &sk LEFT_WIN  &to 6
-                                                                                                  &trans        &to 5
-                                                                                                  &trans        &to 7
-            >;
-        };
-
         symbol {
             bindings = <
 &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
@@ -213,6 +222,15 @@
                                                                                                   &trans  &trans
                                                                                                   &trans  &trans
             >;
+        };
+    };
+
+    conditional_layers {
+        compatible = "zmk,conditional-layers";
+
+        mouse {
+            if-layers = <5 2>;
+            then-layer = <3>;
         };
     };
 };
