@@ -14,11 +14,4 @@ if SHIELD_cosmotyl_LEFT || SHIELD_cosmotyl_RIGHT
 config ZMK_SPLIT
     default y
 
-config SPI
-    default y
-
-config ZMK_RGB_UNDERGLOW
-    select WS2812_STRIP
-    select SPI
-
 endif # SHIELD_cosmotyl_LEFT || SHIELD_cosmotyl_RIGHT
