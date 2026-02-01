@@ -4,3 +4,21 @@ config SHIELD_cosmotyl_LEFT
 
 config SHIELD_cosmotyl_RIGHT
     def_bool $(shields_list_contains,cosmotyl_right)
+
+# Define ZMK_TRACKPAD_* symbols with proper types to fix maxtouch module Kconfig warnings
+# These are used by peacock_vik_module but defined without types, causing build errors
+config ZMK_TRACKPAD_LOGICAL_X
+    int "Trackpad logical X resolution"
+    default 0
+
+config ZMK_TRACKPAD_LOGICAL_Y
+    int "Trackpad logical Y resolution"
+    default 0
+
+config ZMK_TRACKPAD_PHYSICAL_X
+    int "Trackpad physical X size (0.1mm units)"
+    default 0
+
+config ZMK_TRACKPAD_PHYSICAL_Y
+    int "Trackpad physical Y size (0.1mm units)"
+    default 0
