@@ -1,13 +1,13 @@
-
-if SHIELD_cosmotyl_LEFT
+# Right side is central (for Procyon trackpad support)
+if SHIELD_cosmotyl_RIGHT
 
 config ZMK_KEYBOARD_NAME
-    default "cosmotyl"
+    default "Fluxwav 50hz"
 
 config ZMK_SPLIT_ROLE_CENTRAL
     default y
 
-endif # SHIELD_cosmotyl_LEFT
+endif # SHIELD_cosmotyl_RIGHT
 
 if SHIELD_cosmotyl_LEFT || SHIELD_cosmotyl_RIGHT
 
@@ -15,6 +15,9 @@ config ZMK_SPLIT
     default y
 
 config SPI
+    default y
+
+config I2C
     default y
 
 config ZMK_RGB_UNDERGLOW

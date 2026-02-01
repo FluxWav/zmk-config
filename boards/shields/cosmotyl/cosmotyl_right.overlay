@@ -12,3 +12,37 @@
 &default_transform {
     col-offset = <7>;
 };
+
+// Enable I2C for Procyon trackpad via VIK connector
+&vik_i2c {
+    status = "okay";
+
+    trackpad: maxtouch@4a {
+        compatible = "microchip,maxtouch";
+        reg = <0x4a>;
+        chg-gpios = <&vik_conn 3 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+
+        // Procyon 42x50 dimensions (in millimeters)
+        sensor-width = <42>;
+        sensor-height = <50>;
+
+        // Orientation adjustments (may need tuning)
+        swap-xy;
+        // invert-x;  // Uncomment if X axis is reversed
+        // invert-y;  // Uncomment if Y axis is reversed
+
+        // Touch sensitivity (tune based on surface material)
+        touch_threshold = <18>;
+        touch_hysteresis = <8>;
+
+        repeat-each-cycle;
+    };
+};
+
+/ {
+    trackpad_listener {
+        compatible = "zmk,input-listener";
+        mode = "trackpad";
+        device = <&trackpad>;
+    };
+};
