@@ -7,6 +7,21 @@ config ZMK_KEYBOARD_NAME
 config ZMK_SPLIT_ROLE_CENTRAL
     default y
 
+# Procyon 42x50mm trackpad dimensions
+# Logical resolution (touch points) - approximate based on mXT336UD sensor
+config ZMK_TRACKPAD_LOGICAL_X
+    default 1050
+
+config ZMK_TRACKPAD_LOGICAL_Y
+    default 1250
+
+# Physical size in 0.1mm units (42mm x 50mm)
+config ZMK_TRACKPAD_PHYSICAL_X
+    default 420
+
+config ZMK_TRACKPAD_PHYSICAL_Y
+    default 500
+
 endif # SHIELD_cosmotyl_RIGHT
 
 if SHIELD_cosmotyl_LEFT || SHIELD_cosmotyl_RIGHT
