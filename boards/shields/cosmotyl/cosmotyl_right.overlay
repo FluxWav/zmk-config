@@ -13,13 +13,15 @@
 };
 
 // Enable I2C for Procyon trackpad via VIK connector
-&vik_i2c {
+// Use &i2c0 directly since vik_i2c alias is defined in board overlay processed later
+&i2c0 {
     status = "okay";
 
     trackpad: maxtouch@4a {
         compatible = "microchip,maxtouch";
         reg = <0x4a>;
-        chg-gpios = <&vik_conn 3 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+        // CHG pin on VIK AD_1 = P0.29 on Cosmos Lemon Wireless
+        chg-gpios = <&gpio0 29 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
 
         // Procyon 42x50 dimensions (in millimeters)
         sensor-width = <42>;
