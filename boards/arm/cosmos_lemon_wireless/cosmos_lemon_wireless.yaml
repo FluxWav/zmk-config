@@ -1,0 +1,15 @@
+identifier: cosmos_lemon_wireless
+name: cosmos lemon wireless
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+  - gnuarmemb
+  - xtools
+supported:
+  - adc
+  - ble
+  - usb_device
+  - ieee802154
+  - pwm
+  - watchdog
