@@ -30,15 +30,15 @@
 
         // Orientation
         swap-xy;
-        // invert-x;  // Uncomment if X axis is reversed
-        // invert-y;  // Uncomment if Y axis is reversed
+         invert-x;  // Uncomment if X axis is reversed
+         invert-y;  // Uncomment if Y axis is reversed
 
         // Use driver defaults for touch detection (proven stable by George Norton)
-        // touch_threshold = 18 (default)
-        // touch_hysteresis = 8 (default)
-        // gain = 4 (default)
-        // active-acq-time-ms = 10 (default)
-        // idle-acq-time-ms = 32 (default)
+         touch_threshold = 12 (default)
+         touch_hysteresis = 5 (default)
+         gain = 8 (default)
+         active-acq-time-ms = 10 (default)
+         idle-acq-time-ms = 32 (default)
 
         repeat-each-cycle;
     };
