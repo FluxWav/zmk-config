@@ -29,9 +29,9 @@
         sensor-height = <50>;
 
         // Orientation
-        swap-xy;
-        invert-x;
-        // invert-y;
+        // swap-xy;
+        // invert-x;
+        invert-y;
 
         // Tuning values
         touch_threshold = <12>;
