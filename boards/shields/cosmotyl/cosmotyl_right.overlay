@@ -30,8 +30,8 @@
 
         // Orientation
         // swap-xy;
-        // invert-x;
-        invert-y;
+        invert-x;
+        // invert-y;
 
         // Tuning values
         touch_threshold = <12>;
