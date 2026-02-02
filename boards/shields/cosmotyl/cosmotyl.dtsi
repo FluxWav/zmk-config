@@ -1,7 +1,8 @@
 #include <behaviors.dtsi>
 #include <dt-bindings/zmk/matrix_transform.h>
 #include <dt-bindings/zmk/keys.h>
-#include "cosmotyl-layouts.dtsi"
+// ZMK Studio layouts disabled - petejohanson's branch doesn't have physical_layouts.dtsi
+// #include "cosmotyl-layouts.dtsi"
 
 // Tell VIK that there is 1 other device on the SPI bus.
 // You will need to increase this number if you add another SPI device.
@@ -27,7 +28,7 @@
 / {
     chosen {
         zmk,kscan = &kscan0;
-        zmk,physical-layout = &default_layout;
+        // zmk,physical-layout = &default_layout;  // Disabled - requires ZMK Studio
     };
 
     default_transform: keymap_transform_0 {
