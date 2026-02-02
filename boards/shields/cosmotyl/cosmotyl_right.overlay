@@ -33,16 +33,12 @@
         // invert-x;  // Uncomment if X axis is reversed
         // invert-y;  // Uncomment if Y axis is reversed
 
-        // TUNED: Reduced thresholds for more sensitivity
-        touch_threshold = <12>;      // was 18 - lower = more sensitive
-        touch_hysteresis = <5>;      // was 8 - lower = faster response
-
-        // TUNED: Increased gain for stronger signal
-        gain = <8>;                  // default 4 - higher = more sensitive
-
-        // TUNED: Faster acquisition for smoother tracking
-        active-acq-time-ms = <6>;    // default 10 - faster updates
-        idle-acq-time-ms = <20>;     // default 32 - faster idle scanning
+        // Use driver defaults for touch detection (proven stable by George Norton)
+        // touch_threshold = 18 (default)
+        // touch_hysteresis = 8 (default)
+        // gain = 4 (default)
+        // active-acq-time-ms = 10 (default)
+        // idle-acq-time-ms = 32 (default)
 
         repeat-each-cycle;
     };
