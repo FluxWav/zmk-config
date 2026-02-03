@@ -1,9 +1,9 @@
 
-config SHIELD_cosmotyl_LEFT
-    def_bool $(shields_list_contains,cosmotyl_left)
+config SHIELD_wav50hz_LEFT
+    def_bool $(shields_list_contains,wav50hz_left)
 
-config SHIELD_cosmotyl_RIGHT
-    def_bool $(shields_list_contains,cosmotyl_right)
+config SHIELD_wav50hz_RIGHT
+    def_bool $(shields_list_contains,wav50hz_right)
 
 # Define ZMK_TRACKPAD_* symbols with proper types to fix maxtouch module Kconfig warnings
 # These are used by peacock_vik_module but defined without types, causing build errors

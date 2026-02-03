@@ -1,8 +1,8 @@
 # Right side is central (for Procyon trackpad support)
-if SHIELD_cosmotyl_RIGHT
+if SHIELD_wav50hz_RIGHT
 
 config ZMK_KEYBOARD_NAME
-    default "Fluxwav 50hz"
+    default "Wav50hz"
 
 config ZMK_SPLIT_ROLE_CENTRAL
     default y
@@ -22,9 +22,9 @@ config ZMK_TRACKPAD_PHYSICAL_X
 config ZMK_TRACKPAD_PHYSICAL_Y
     default 500
 
-endif # SHIELD_cosmotyl_RIGHT
+endif # SHIELD_wav50hz_RIGHT
 
-if SHIELD_cosmotyl_LEFT || SHIELD_cosmotyl_RIGHT
+if SHIELD_wav50hz_LEFT || SHIELD_wav50hz_RIGHT
 
 config ZMK_SPLIT
     default y
@@ -39,4 +39,4 @@ config ZMK_RGB_UNDERGLOW
     select WS2812_STRIP
     select SPI
 
-endif # SHIELD_cosmotyl_LEFT || SHIELD_cosmotyl_RIGHT
+endif # SHIELD_wav50hz_LEFT || SHIELD_wav50hz_RIGHT

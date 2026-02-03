@@ -2,7 +2,7 @@
 #include <dt-bindings/zmk/matrix_transform.h>
 #include <dt-bindings/zmk/keys.h>
 // ZMK Studio layouts disabled - petejohanson's branch doesn't have physical_layouts.dtsi
-// #include "cosmotyl-layouts.dtsi"
+// #include "wav50hz-layouts.dtsi"
 
 // Tell VIK that there is 1 other device on the SPI bus.
 // You will need to increase this number if you add another SPI device.

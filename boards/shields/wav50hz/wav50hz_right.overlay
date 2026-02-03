@@ -1,4 +1,4 @@
-#include "cosmotyl.dtsi"
+#include "wav50hz.dtsi"
 
 / {
     bootloader_key: bootloader_key {
