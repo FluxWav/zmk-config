@@ -26,13 +26,7 @@ config ZMK_TRACKPAD_PHYSICAL_X
 config ZMK_TRACKPAD_PHYSICAL_Y
     default 500
 
-config PS2
-    default y
-
-config PS2_UART
-    default y
-
-config ZMK_MOUSE_PS2
+config ZMK_INPUT_MOUSE_PS2
     default y
 
 endif # SHIELD_cosmotyl_RIGHT
