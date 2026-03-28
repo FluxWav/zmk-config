@@ -12,42 +12,125 @@
     col-offset = <7>;
 };
 
-// Enable I2C for Procyon trackpad via VIK connector
-// Use &i2c0 directly since vik_i2c alias is defined in board overlay processed later
-&i2c0 {
-    status = "okay";
+// ─── PS/2 Interrupt Priority Overrides ───────────────────────────────────────
+// GPIOTE must have the highest interrupt priority (0) so PS/2 events can be
+// processed within the required 30–50µs window. All other nRF52840 peripherals
+// are demoted two levels to priority 3 (from their default of 1).
+// The BT controller LLL/ULL priorities are automatically demoted by the
+// PS/2 UART driver via Kconfig (CONFIG_BT_CTLR_LLL_PRIO=1, etc.).
+&gpiote     { interrupts = < 6 0 >; };
+&clock      { interrupts = < 0 3 >; };
+&power      { interrupts = < 0 3 >; };
+&radio      { interrupts = < 1 3 >; };
+&uart0      { interrupts = < 2 3 >; };
+&i2c0       { interrupts = < 3 3 >; };
+&spi0       { interrupts = < 3 3 >; };
+&i2c1       { interrupts = < 4 3 >; };
+&spi1       { interrupts = < 4 3 >; };
+&nfct       { interrupts = < 5 3 >; };
+&adc        { interrupts = < 7 3 >; };
+&timer0     { interrupts = < 8 3 >; };
+&timer1     { interrupts = < 9 3 >; };
+&timer2     { interrupts = < 10 3 >; };
+&rtc0       { interrupts = < 11 3 >; };
+&temp       { interrupts = < 12 3 >; };
+&rng        { interrupts = < 13 3 >; };
+&ecb        { interrupts = < 14 3 >; };
+&ccm        { interrupts = < 15 3 >; };
+&wdt        { interrupts = < 16 3 >; };
+&rtc1       { interrupts = < 17 3 >; };
+&qdec       { interrupts = < 18 3 >; };
+&comp       { interrupts = < 19 3 >; };
+&egu0       { interrupts = < 20 3 >; };
+&egu1       { interrupts = < 21 3 >; };
+&egu2       { interrupts = < 22 3 >; };
+&egu3       { interrupts = < 23 3 >; };
+&egu4       { interrupts = < 24 3 >; };
+&egu5       { interrupts = < 25 3 >; };
+&timer3     { interrupts = < 26 3 >; };
+&timer4     { interrupts = < 27 3 >; };
+&pwm0       { interrupts = < 28 3 >; };
+&pdm0       { interrupts = < 29 3 >; };
+&pwm1       { interrupts = < 33 3 >; };
+&pwm2       { interrupts = < 34 3 >; };
+&spi2       { interrupts = < 35 3 >; };
+&rtc2       { interrupts = < 36 3 >; };
+&i2s0       { interrupts = < 37 3 >; };
+&usbd       { interrupts = < 39 3 >; };
+&uart1      { interrupts = < 40 3 >; };
+&qspi       { interrupts = < 41 3 >; };
+&pwm3       { interrupts = < 45 3 >; };
+&spi3       { interrupts = < 47 3 >; };
+&cryptocell { interrupts = < 42 3 >; };
 
-    trackpad: maxtouch@4a {
-        compatible = "microchip,maxtouch";
-        status = "okay";
-        reg = <0x4a>;
-        // CHG pin on VIK AD_1 = P0.29 on Cosmos Lemon Wireless
-        chg-gpios = <&gpio0 29 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
-
-        // Procyon 42x50 dimensions (in millimeters)
-        sensor-width = <42>;
-        sensor-height = <50>;
-
-        // Orientation
-        // swap-xy;
-        invert-x;
-        invert-y;
-
-        // Tuning values
-        touch_threshold = <12>;
-        touch_hysteresis = <5>;
-        gain = <8>;
-        active-acq-time-ms = <10>;
-        idle-acq-time-ms = <32>;
-
-        repeat-each-cycle;
+// ─── PS/2 Pinctrl ────────────────────────────────────────────────────────────
+// The UART driver uses hardware UART only for receiving (device → host).
+// For transmitting (host → device, rare), it switches UART off and GPIO
+// bit-bangs the CLK and DAT pins directly.
+//
+// Pin mapping (VIK connector):
+//   PS/2 CLK → scl-gpios → P0.29  (VIK AD_1, freed from MaxTouch CHG)
+//   PS/2 DAT → sda-gpios → P0.31  (VIK AD_2)
+//              UART_RX   → P0.31  (same pin; UART receives PS/2 data stream)
+//   PS/2 RST → rst-gpios → P0.15  (VIK SDA, freed from I2C)
+//   UART TX  → P0.27     (nRF52840 internal, not exposed on Cosmos Lemon Wireless)
+//   UART RX  → P0.28     (nRF52840 internal, not exposed — used only in off state)
+&pinctrl {
+    // Receive mode: dummy TX on unexposed P0.27, UART RX on DAT pin P0.31
+    uart0_ps2_default: uart0_ps2_default {
+        group1 {
+            psels = <NRF_PSEL(UART_TX, 0, 27)>,
+                    <NRF_PSEL(UART_RX, 0, 31)>;
+        };
+    };
+    uart0_ps2_sleep: uart0_ps2_sleep {
+        group1 {
+            psels = <NRF_PSEL(UART_TX, 0, 27)>,
+                    <NRF_PSEL(UART_RX, 0, 31)>;
+            low-power-enable;
+        };
+    };
+    // Transmit / off mode: both pins moved to unexposed dummies so GPIO can
+    // take over CLK (P0.29) and DAT (P0.31) for bit-banged host→device writes
+    uart0_ps2_off: uart0_ps2_off {
+        group1 {
+            psels = <NRF_PSEL(UART_TX, 0, 27)>,
+                    <NRF_PSEL(UART_RX, 0, 28)>;
+        };
     };
 };
 
+// ─── PS/2 UART Driver ────────────────────────────────────────────────────────
+// Baud rate 14400 ≈ 69µs cycle, closest to the ~67µs (14,925 Hz) used by
+// IBM/Lenovo TrackPoints. Try 9600 or 19200 if this specific unit doesn't work.
+&uart0 {
+    status = "disabled";
+    compatible = "nordic,nrf-uarte";
+    current-speed = <14400>;
+    pinctrl-0 = <&uart0_ps2_default>;
+    pinctrl-1 = <&uart0_ps2_off>;
+    pinctrl-names = "default", "sleep";
+
+    uart_ps2: uart_ps2 {
+        status = "disabled";
+        compatible = "uart-ps2";
+        scl-gpios = <&gpio0 29 GPIO_ACTIVE_HIGH>;  /* PS/2 CLK — VIK AD_1 */
+        sda-gpios = <&gpio0 31 GPIO_ACTIVE_HIGH>;  /* PS/2 DAT — VIK AD_2 */
+    };
+};
+
+// ─── PS/2 Mouse / TrackPoint Device + Input Listener ─────────────────────────
 / {
-    trackpad_listener {
-        compatible = "zmk,input-listener";
-        mode = "trackpad";
-        device = <&trackpad>;
+    mouse_ps2: mouse_ps2 {
+        status = "disabled";
+        compatible = "zmk,input-mouse-ps2";
+        ps2-device = <&uart_ps2>;
+        rst-gpios = <&gpio0 15 GPIO_ACTIVE_HIGH>;  /* RST — VIK SDA (P0.15) */
+    };
+
+    mouse_ps2_input_listener: mouse_ps2_input_listener {
+        compatible = "zmk,input-listener-ps2";
+        status = "disabled";
+        device = <&mouse_ps2>;
     };
 };
