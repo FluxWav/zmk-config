@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl:*)",
+      "Bash(git stash:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nAdd Procyon 42x50 trackpad support via VIK connector\n\n- Switch to petejohanson''s feat/pointers-move-scroll-ptp ZMK branch\n- Add george-norton''s maxtouch-zephyr-module for MaxTouch driver\n- Make right side central \\(required for pointing device\\)\n- Add Procyon I2C configuration to right overlay \\(address 0x4a, CHG on vik_conn 3\\)\n- Enable CONFIG_ZMK_POINTING and CONFIG_INPUT_MICROCHIP_MAXTOUCH\n- Rename keyboard to \"Fluxwav 50hz\"\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:api.github.com)",
+      "Bash(git -C \"C:\\\\Users\\\\micmw\\\\Documents\\\\GitHub\\\\zmk-config\" show 0af98bb --stat)",
+      "Bash(xargs wc:*)",
+      "WebFetch(domain:productionresultssa5.blob.core.windows.net)",
+      "Bash(gh run:*)",
+      "Bash(where gh:*)"
+    ]
+  }
+}
