@@ -4,10 +4,38 @@ if SHIELD_cosmotyl_LEFT
 config ZMK_KEYBOARD_NAME
     default "cosmotyl"
 
+endif # SHIELD_cosmotyl_LEFT
+
+if SHIELD_cosmotyl_RIGHT
+
+config ZMK_KEYBOARD_NAME
+    default "cosmotyl"
+
 config ZMK_SPLIT_ROLE_CENTRAL
     default y
 
-endif # SHIELD_cosmotyl_LEFT
+config ZMK_TRACKPAD_LOGICAL_X
+    default 1050
+
+config ZMK_TRACKPAD_LOGICAL_Y
+    default 1250
+
+config ZMK_TRACKPAD_PHYSICAL_X
+    default 420
+
+config ZMK_TRACKPAD_PHYSICAL_Y
+    default 500
+
+config PS2
+    default y
+
+config PS2_UART
+    default y
+
+config ZMK_MOUSE_PS2
+    default y
+
+endif # SHIELD_cosmotyl_RIGHT
 
 if SHIELD_cosmotyl_LEFT || SHIELD_cosmotyl_RIGHT
 
@@ -15,6 +43,9 @@ config ZMK_SPLIT
     default y
 
 config SPI
+    default y
+
+config I2C
     default y
 
 config ZMK_RGB_UNDERGLOW

@@ -7,8 +7,81 @@
         key-position = <29>;
         jump-to-bootloader;
     };
+
+    trackpad_listener: trackpad_listener {
+        compatible = "zmk,input-listener";
+        mode = "trackpad";
+        device = <&trackpad>;
+    };
+
+    trackpoint_listener: trackpoint_listener {
+        compatible = "zmk,input-listener";
+        device = <&trackpoint>;
+    };
 };
 
 &default_transform {
     col-offset = <7>;
+};
+
+/* ── Procyon MaxTouch via VIK I2C ───────────────────────────────── */
+&i2c0 {
+    status = "okay";
+
+    trackpad: maxtouch@4a {
+        compatible = "microchip,maxtouch";
+        status = "okay";
+        reg = <0x4a>;
+        /* CHG on VIK AD_1 = P0.29 */
+        chg-gpios = <&gpio0 29 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+
+        sensor-width = <42>;
+        sensor-height = <50>;
+
+        swap-xy;
+        /* invert-x; */
+        /* invert-y; */
+    };
+};
+
+/* ── PS/2 TrackPoint via VIK AD_1/AD_2 ─────────────────────────── */
+/* CLK = VIK AD_2 = P0.31 (UART RTS)                               */
+/* DATA = VIK AD_1 = P0.29 (UART RX)                               */
+&pinctrl {
+    uart0_ps2_default: uart0_ps2_default {
+        group1 {
+            psels = <NRF_PSEL(UART_RX, 0, 29)>;
+            bias-pull-up;
+        };
+        group2 {
+            psels = <NRF_PSEL(UART_RTS, 0, 31)>;
+            bias-pull-up;
+        };
+    };
+    uart0_ps2_sleep: uart0_ps2_sleep {
+        group1 {
+            psels = <NRF_PSEL(UART_RX, 0, 29)>;
+            low-power-enable;
+        };
+        group2 {
+            psels = <NRF_PSEL(UART_RTS, 0, 31)>;
+            low-power-enable;
+        };
+    };
+};
+
+&uart0 {
+    status = "okay";
+    compatible = "nordic,nrf-uarte";
+    pinctrl-0 = <&uart0_ps2_default>;
+    pinctrl-1 = <&uart0_ps2_sleep>;
+    pinctrl-names = "default", "sleep";
+    current-speed = <115200>;
+};
+
+/ {
+    trackpoint: ps2_mouse {
+        compatible = "zmk,ps2-mouse";
+        ps2-device = <&uart0>;
+    };
 };
