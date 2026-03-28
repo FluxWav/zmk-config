@@ -104,7 +104,7 @@
 // Baud rate 14400 ≈ 69µs cycle, closest to the ~67µs (14,925 Hz) used by
 // IBM/Lenovo TrackPoints. Try 9600 or 19200 if this specific unit doesn't work.
 &uart0 {
-    status = "disabled";
+    status = "okay";
     compatible = "nordic,nrf-uarte";
     current-speed = <14400>;
     pinctrl-0 = <&uart0_ps2_default>;
@@ -112,7 +112,7 @@
     pinctrl-names = "default", "sleep";
 
     uart_ps2: uart_ps2 {
-        status = "disabled";
+        status = "okay";
         compatible = "uart-ps2";
         scl-gpios = <&gpio0 29 GPIO_ACTIVE_HIGH>;  /* PS/2 CLK — VIK AD_1 */
         sda-gpios = <&gpio0 31 GPIO_ACTIVE_HIGH>;  /* PS/2 DAT — VIK AD_2 */
@@ -137,7 +137,7 @@
 // ─── PS/2 Mouse / TrackPoint Device + Input Listener ─────────────────────────
 / {
     mouse_ps2: mouse_ps2 {
-        status = "disabled";
+        status = "okay";
         compatible = "zmk,input-mouse-ps2";
         ps2-device = <&uart_ps2>;
         rst-gpios = <&gpio0 15 GPIO_ACTIVE_HIGH>;  /* RST — VIK SDA (P0.15) */
@@ -145,7 +145,7 @@
 
     mouse_ps2_input_listener: mouse_ps2_input_listener {
         compatible = "zmk,input-listener-ps2";
-        status = "disabled";
+        status = "okay";
         device = <&mouse_ps2>;
     };
 };
