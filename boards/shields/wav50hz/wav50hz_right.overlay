@@ -119,6 +119,21 @@
     };
 };
 
+// ─── USB CDC ACM UART (for ZMK_USB_LOGGING) ──────────────────────────────────
+// Required so DT_HAS_ZEPHYR_CDC_ACM_UART_ENABLED is satisfied at Kconfig time.
+// Remove this block (and the logging Kconfig) after debug session is complete.
+&zephyr_udc0 {
+    cdc_acm_uart0: cdc_acm_uart0 {
+        compatible = "zephyr,cdc-acm-uart";
+    };
+};
+
+/ {
+    chosen {
+        zephyr,console = &cdc_acm_uart0;
+    };
+};
+
 // ─── PS/2 Mouse / TrackPoint Device + Input Listener ─────────────────────────
 / {
     mouse_ps2: mouse_ps2 {
