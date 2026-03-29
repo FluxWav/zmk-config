@@ -106,7 +106,7 @@
 &uart0 {
     status = "okay";
     compatible = "nordic,nrf-uarte";
-    current-speed = <14400>;
+    current-speed = <9600>;
     pinctrl-0 = <&uart0_ps2_default>;
     pinctrl-1 = <&uart0_ps2_sleep>;
     pinctrl-names = "default", "sleep";
