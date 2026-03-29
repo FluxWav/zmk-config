@@ -106,7 +106,7 @@
 &uart0 {
     status = "okay";
     compatible = "nordic,nrf-uarte";
-    current-speed = <9600>;
+    current-speed = <14400>;
     pinctrl-0 = <&uart0_ps2_default>;
     pinctrl-1 = <&uart0_ps2_sleep>;
     pinctrl-names = "default", "sleep";
@@ -140,7 +140,7 @@
         status = "okay";
         compatible = "zmk,input-mouse-ps2";
         ps2-device = <&uart_ps2>;
-        rst-gpios = <&gpio0 15 GPIO_ACTIVE_HIGH>;  /* RST — VIK SDA (P0.15) */
+        rst-gpios = <&gpio0 15 GPIO_ACTIVE_LOW>;  /* RST — VIK SDA (P0.15), active-low */
     };
 
     mouse_ps2_input_listener: mouse_ps2_input_listener {
