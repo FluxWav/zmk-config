@@ -108,14 +108,14 @@
     compatible = "nordic,nrf-uarte";
     current-speed = <14400>;
     pinctrl-0 = <&uart0_ps2_default>;
-    pinctrl-1 = <&uart0_ps2_sleep>;
+    pinctrl-1 = <&uart0_ps2_off>;
     pinctrl-names = "default", "sleep";
 
     uart_ps2: uart_ps2 {
         status = "okay";
         compatible = "uart-ps2";
-        scl-gpios = <&gpio0 29 GPIO_ACTIVE_LOW>;  /* PS/2 CLK — VIK AD_1, open-drain active-low */
-        sda-gpios = <&gpio0 31 GPIO_ACTIVE_LOW>;  /* PS/2 DAT — VIK AD_2, open-drain active-low */
+        scl-gpios = <&gpio0 29 GPIO_ACTIVE_HIGH>;  /* PS/2 CLK — VIK AD_1 */
+        sda-gpios = <&gpio0 31 GPIO_ACTIVE_HIGH>;  /* PS/2 DAT — VIK AD_2 */
     };
 };
 
