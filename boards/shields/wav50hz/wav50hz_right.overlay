@@ -108,8 +108,9 @@
     compatible = "nordic,nrf-uarte";
     current-speed = <14400>;
     pinctrl-0 = <&uart0_ps2_default>;
-    pinctrl-1 = <&uart0_ps2_off>;
-    pinctrl-names = "default", "sleep";
+    pinctrl-1 = <&uart0_ps2_sleep>;
+    pinctrl-2 = <&uart0_ps2_off>;
+    pinctrl-names = "default", "sleep", "off";
 
     uart_ps2: uart_ps2 {
         status = "okay";
