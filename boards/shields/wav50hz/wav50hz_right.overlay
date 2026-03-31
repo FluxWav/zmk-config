@@ -149,3 +149,11 @@
         device = <&mouse_ps2>;
     };
 };
+
+// ─── P0.15 Conflict Resolution ───────────────────────────────────────────────
+// P0.15 is used by PS/2 RST (rst-gpios). Two board-level nodes also claim it:
+//   1. leds/blue_led (gpio-leds) — ZMK drives P0.15 for BLE status indication
+//   2. i2c0 pinctrl — TWIM_SDA with bias-pull-up on P0.15
+// Both must be disabled so PS/2 RST has exclusive control of the pin.
+&leds { status = "disabled"; };
+&i2c0 { status = "disabled"; };
