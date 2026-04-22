@@ -4,5 +4,3 @@ include:
     shield: wav50hz_left
   - board: cosmos_lemon_wireless
     shield: wav50hz_right
-  - board: cosmos_lemon_wireless
-    shield: settings_reset
