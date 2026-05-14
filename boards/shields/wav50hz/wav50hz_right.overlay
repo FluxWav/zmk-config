@@ -30,12 +30,13 @@
 
         // Orientation
         // swap-xy;
+        invert-x;
+        invert-y;
 
         // Tuning values
-        max-touch-points = <5>;
-        touch_threshold = <18>;
-        touch_hysteresis = <8>;
-        gain = <4>;
+        touch_threshold = <12>;
+        touch_hysteresis = <5>;
+        gain = <8>;
         active-acq-time-ms = <10>;
         idle-acq-time-ms = <32>;
 
