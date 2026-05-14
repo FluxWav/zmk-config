@@ -6,7 +6,7 @@ config BOARD
     default "cosmos_lemon_wireless"
 
 config ZMK_USB
-    default y
+    default y if !ZMK_SPLIT || ZMK_SPLIT_ROLE_CENTRAL
 
 config USB_NRFX
     default y
