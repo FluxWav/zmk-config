@@ -32,8 +32,8 @@
         // swap-xy;
 
         // Tuning values
-        touch_threshold = <9>;
-        touch_hysteresis = <4>;
+        touch_threshold = <12>;
+        touch_hysteresis = <5>;
         gain = <8>;
         active-acq-time-ms = <10>;
         idle-acq-time-ms = <32>;
