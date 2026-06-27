@@ -8,6 +8,34 @@
     };
 };
 
+&i2c0 {
+    status = "okay";
+
+    trackpad: maxtouch@4a {
+        compatible = "microchip,maxtouch";
+        status = "okay";
+        reg = <0x4a>;
+        chg-gpios = <&gpio0 29 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+        sensor-width = <42>;
+        sensor-height = <50>;
+        touch_threshold = <12>;
+        touch_hysteresis = <5>;
+        gain = <8>;
+        active-acq-time-ms = <10>;
+        idle-acq-time-ms = <32>;
+        repeat-each-cycle;
+    };
+};
+
+/* Peripheral half gets the same trackpad plumbing; performance is lower there. */
+/ {
+    trackpad_listener {
+        compatible = "zmk,input-listener";
+        mode = "trackpad";
+        device = <&trackpad>;
+    };
+};
+
 &left_encoder {
     status = "okay";
 };

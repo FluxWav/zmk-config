@@ -6,5 +6,3 @@ include:
     shield: wav50_right
     snippet: studio-rpc-usb-uart
     cmake-args: -DCONFIG_ZMK_STUDIO=y
-  - board: cosmos_lemon_wireless
-    shield: settings_reset
