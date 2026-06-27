@@ -116,8 +116,8 @@ jobs:
       - name: Apply Zephyr 4.1 precision touchpad port
         working-directory: ${{ env.base_dir }}/zmk
         run: |
-          git apply "${{ github.workspace }}/patches/zmk-zephyr41-ptp.patch"
-          git apply "${{ github.workspace }}/patches/zmk-zephyr41-ptp-sources.patch"
+          git -c safe.directory="${{ env.base_dir }}/zmk" apply "${{ github.workspace }}/patches/zmk-zephyr41-ptp.patch"
+          git -c safe.directory="${{ env.base_dir }}/zmk" apply "${{ github.workspace }}/patches/zmk-zephyr41-ptp-sources.patch"
 
       - name: Check ZMK revision
         working-directory: ${{ env.base_dir }}
