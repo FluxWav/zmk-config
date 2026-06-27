@@ -1,0 +1,17 @@
+
+if SHIELD_wav50_RIGHT
+
+config ZMK_KEYBOARD_NAME
+    default "wav50"
+
+config ZMK_SPLIT_ROLE_CENTRAL
+    default y
+
+endif # SHIELD_wav50_RIGHT
+
+if SHIELD_wav50_LEFT || SHIELD_wav50_RIGHT
+
+config ZMK_SPLIT
+    default y
+
+endif # SHIELD_wav50_LEFT || SHIELD_wav50_RIGHT

@@ -1,0 +1,13 @@
+file_format: "1"
+id: wav50
+name: wav50
+type: shield
+url: https://github.com/rianadon/Cosmos-Keyboards
+features:
+  - keys
+  - underglow
+  - encoder
+  - studio
+siblings:
+  - wav50_left
+  - wav50_right

@@ -1,0 +1,17 @@
+#include "wav50.dtsi"
+
+/ {
+    bootloader_key: bootloader_key {
+        compatible = "zmk,boot-magic-key";
+        key-position = <11>;
+        jump-to-bootloader;
+    };
+};
+
+&default_transform {
+    col-offset = <7>;
+};
+
+&right_encoder {
+    status = "okay";
+};
