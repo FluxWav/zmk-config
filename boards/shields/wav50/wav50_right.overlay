@@ -22,9 +22,10 @@
         chg-gpios = <&gpio0 29 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
         sensor-width = <42>;
         sensor-height = <50>;
-        touch_threshold = <12>;
-        touch_hysteresis = <5>;
-        gain = <8>;
+        max-touch-points = <5>;
+        touch_threshold = <18>;
+        touch_hysteresis = <8>;
+        gain = <4>;
         active-acq-time-ms = <10>;
         idle-acq-time-ms = <32>;
         repeat-each-cycle;
@@ -37,8 +38,4 @@
         device = <&trackpad>;
         mode = "trackpad";
     };
-};
-
-&right_encoder {
-    status = "okay";
 };
