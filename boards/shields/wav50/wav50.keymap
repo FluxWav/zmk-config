@@ -2,6 +2,10 @@
 #include <dt-bindings/zmk/keys.h>
 
 #ifdef CONFIG_ZMK_STUDIO
+#include <behaviors/studio_unlock.dtsi>
+#endif
+
+#ifdef CONFIG_ZMK_STUDIO
 #define WAV50_STUDIO_UNLOCK &studio_unlock
 #else
 #define WAV50_STUDIO_UNLOCK &none
