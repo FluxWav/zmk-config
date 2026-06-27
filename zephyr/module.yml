@@ -3,3 +3,4 @@ build:
     - vik-core
   settings:
     board_root: .
+    snippet_root: app
