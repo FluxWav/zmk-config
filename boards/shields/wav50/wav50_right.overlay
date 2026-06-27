@@ -23,6 +23,8 @@
         sensor-width = <42>;
         sensor-height = <50>;
         max-touch-points = <5>;
+        invert-x;
+        invert-y;
         touch_threshold = <12>;
         touch_hysteresis = <5>;
         gain = <8>;
