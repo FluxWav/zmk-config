@@ -1,9 +1,0 @@
-build:
-  cmake: app
-  kconfig: app/Kconfig
-  depends:
-    - vik-core
-  settings:
-    board_root: .
-    dts_root: app/dts
-    snippet_root: app

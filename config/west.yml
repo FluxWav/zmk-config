@@ -9,11 +9,8 @@ manifest:
   projects:
     - name: zmk
       remote: petejohanson
-      revision: feat/pointers-move-scroll-ptp
+      revision: studio-uart-rpc-thread-priority
       import: app/west.yml
-    - name: zmk-studio-messages
-      remote: zmkfirmware
-      revision: 6cb4c283e76209d59c45fbcb218800cd19e9339d
     - name: maxtouch-zephyr-module
       remote: george-norton
       revision: main
