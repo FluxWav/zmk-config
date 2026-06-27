@@ -1,0 +1,6 @@
+board:
+  name: cosmos_lemon_wireless
+  full_name: Cosmos Lemon Wireless
+  vendor: others
+  socs:
+    - name: nrf52840

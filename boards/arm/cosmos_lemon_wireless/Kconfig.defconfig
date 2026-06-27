@@ -2,16 +2,7 @@
 
 if BOARD_COSMOS_LEMON_WIRELESS
 
-config BOARD
-    default "cosmos_lemon_wireless"
-
-config ZMK_USB
-    default y
-
 config USB_NRFX
     default y
-
-config BT_CTLR
-    default BT
 
 endif # BOARD_COSMOS_LEMON_WIRELESS

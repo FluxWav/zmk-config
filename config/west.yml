@@ -9,7 +9,7 @@ manifest:
   projects:
     - name: zmk
       remote: petejohanson
-      revision: studio-uart-rpc-thread-priority
+      revision: 73c0fdc6bf0d7777699686dd21d9bd2fd117c0e3
       import: app/west.yml
     - name: maxtouch-zephyr-module
       remote: george-norton

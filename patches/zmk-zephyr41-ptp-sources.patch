@@ -1,0 +1,829 @@
+diff --git a/app/src/endpoints.c b/app/src/endpoints.c
+index 17cdc5d7..8abc0205 100644
+--- a/app/src/endpoints.c
++++ b/app/src/endpoints.c
+@@ -15,6 +15,12 @@
+ #include <dt-bindings/zmk/hid_usage_pages.h>
+ #include <zmk/usb_hid.h>
+ #include <zmk/hog.h>
++
++#if IS_ENABLED(CONFIG_ZMK_MOUSE)
++#include <zmk/mouse/hid.h>
++#include <zmk/mouse/hog.h>
++#include <zmk/mouse/usb_hid.h>
++#endif
+ #include <zmk/endpoints.h>
+ #include <zmk/event_manager.h>
+ #include <zmk/events/ble_active_profile_changed.h>
+@@ -261,7 +267,7 @@ int zmk_endpoint_send_report(uint16_t usage_page) {
+     return -ENOTSUP;
+ }
+ 
+-#if IS_ENABLED(CONFIG_ZMK_POINTING)
++#if IS_ENABLED(CONFIG_ZMK_POINTING) || IS_ENABLED(CONFIG_ZMK_MOUSE)
+ int zmk_endpoint_send_mouse_report() {
+     switch (current_instance.transport) {
+     case ZMK_TRANSPORT_NONE:
+@@ -269,7 +275,11 @@ int zmk_endpoint_send_mouse_report() {
+ 
+     case ZMK_TRANSPORT_USB: {
+ #if IS_ENABLED(CONFIG_ZMK_USB)
++#if IS_ENABLED(CONFIG_ZMK_POINTING)
+         int err = zmk_usb_hid_send_mouse_report();
++#else
++        int err = zmk_mouse_usb_hid_send_mouse_report();
++#endif
+         if (err) {
+             LOG_ERR("FAILED TO SEND OVER USB: %d", err);
+         }
+@@ -282,8 +292,13 @@ int zmk_endpoint_send_mouse_report() {
+ 
+     case ZMK_TRANSPORT_BLE: {
+ #if IS_ENABLED(CONFIG_ZMK_BLE)
++#if IS_ENABLED(CONFIG_ZMK_POINTING)
+         struct zmk_hid_mouse_report *mouse_report = zmk_hid_get_mouse_report();
+         int err = zmk_hog_send_mouse_report(&mouse_report->body);
++#else
++        struct zmk_hid_mouse_report *mouse_report = zmk_mouse_hid_get_mouse_report();
++        int err = zmk_mouse_hog_send_mouse_report(&mouse_report->body);
++#endif
+         if (err) {
+             LOG_ERR("FAILED TO SEND OVER HOG: %d", err);
+         }
+@@ -298,7 +313,32 @@ int zmk_endpoint_send_mouse_report() {
+     LOG_ERR("Unhandled endpoint transport %d", current_instance.transport);
+     return -ENOTSUP;
+ }
+-#endif // IS_ENABLED(CONFIG_ZMK_POINTING)
++#endif // IS_ENABLED(CONFIG_ZMK_POINTING) || IS_ENABLED(CONFIG_ZMK_MOUSE)
++
++#if IS_ENABLED(CONFIG_ZMK_TRACKPAD)
++int zmk_endpoint_send_ptp_report(void) {
++    switch (current_instance.transport) {
++    case ZMK_TRANSPORT_NONE:
++        return 0;
++
++    case ZMK_TRANSPORT_USB:
++#if IS_ENABLED(CONFIG_ZMK_USB)
++        return zmk_mouse_usb_hid_send_ptp_report();
++#else
++        return -ENOTSUP;
++#endif
++
++    case ZMK_TRANSPORT_BLE:
++#if IS_ENABLED(CONFIG_ZMK_BLE)
++        return zmk_mouse_hog_send_ptp_report(&zmk_mouse_hid_get_ptp_report()->body);
++#else
++        return -ENOTSUP;
++#endif
++    }
++
++    return -ENOTSUP;
++}
++#endif // IS_ENABLED(CONFIG_ZMK_TRACKPAD)
+ 
+ #if IS_ENABLED(CONFIG_SETTINGS)
+ 
+diff --git a/app/src/mouse/CMakeLists.txt b/app/src/mouse/CMakeLists.txt
+new file mode 100644
+index 00000000..405c1086
+--- /dev/null
++++ b/app/src/mouse/CMakeLists.txt
+@@ -0,0 +1,6 @@
++if(CONFIG_ZMK_MOUSE)
++    target_sources(app PRIVATE hid.c)
++
++    target_sources_ifdef(CONFIG_ZMK_USB app PRIVATE usb_hid.c)
++    target_sources_ifdef(CONFIG_ZMK_BLE app PRIVATE hog.c)
++endif()
+\ No newline at end of file
+diff --git a/app/src/mouse/Kconfig b/app/src/mouse/Kconfig
+new file mode 100644
+index 00000000..389a4f6a
+--- /dev/null
++++ b/app/src/mouse/Kconfig
+@@ -0,0 +1,53 @@
++# Copyright (c) 2023 The ZMK Contributors
++# SPDX-License-Identifier: MIT
++
++menuconfig ZMK_MOUSE
++    bool "Mouse Emulation"
++    select INPUT
++    select INPUT_THREAD_PRIORITY_OVERRIDE
++    select USB_COMPOSITE_DEVICE if ZMK_USB
++
++if ZMK_MOUSE
++
++if ZMK_USB
++
++config USB_HID_DEVICE_COUNT
++    default 2
++
++endif
++
++config ZMK_TRACKPAD
++    bool "Trackpad support"
++    select ENABLE_HID_INT_OUT_EP if ZMK_USB
++
++if ZMK_TRACKPAD
++
++if ZMK_USB
++
++config USB_REQUEST_BUFFER_SIZE
++    default 512
++
++config HID_INTERRUPT_EP_MPS
++    default 64
++
++endif
++
++config ZMK_TRACKPAD_FINGERS
++    int "Max simultaneous fingers"
++    default 5
++
++config ZMK_TRACKPAD_LOGICAL_X
++    int "Logical X"
++
++config ZMK_TRACKPAD_LOGICAL_Y
++    int "Logical Y"
++
++config ZMK_TRACKPAD_PHYSICAL_X
++    int "Physical X"
++
++config ZMK_TRACKPAD_PHYSICAL_Y
++    int "Physical Y"
++
++endif # ZMK_TRACKPAD
++
++endif # ZMK_MOUSE
+\ No newline at end of file
+diff --git a/app/src/mouse/hid.c b/app/src/mouse/hid.c
+new file mode 100644
+index 00000000..73faf796
+--- /dev/null
++++ b/app/src/mouse/hid.c
+@@ -0,0 +1,249 @@
++/*
++ * Copyright (c) 2020 The ZMK Contributors
++ *
++ * SPDX-License-Identifier: MIT
++ */
++
++#include <zephyr/logging/log.h>
++LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
++
++#include <zmk/mouse/hid.h>
++
++#if IS_ENABLED(CONFIG_ZMK_MOUSE)
++
++static struct zmk_hid_mouse_report mouse_report = {
++    .report_id = ZMK_MOUSE_HID_REPORT_ID_MOUSE,
++    .body = {.buttons = 0, .d_x = 0, .d_y = 0, .d_scroll_y = 0}};
++
++// Keep track of how often a button was pressed.
++// Only release the button if the count is 0.
++static int explicit_button_counts[5] = {0, 0, 0, 0, 0};
++static zmk_mod_flags_t explicit_buttons = 0;
++
++#define SET_MOUSE_BUTTONS(btns)                                                                    \
++    {                                                                                              \
++        mouse_report.body.buttons = btns;                                                          \
++        LOG_DBG("Mouse buttons set to 0x%02X", mouse_report.body.buttons);                         \
++    }
++
++int zmk_hid_mouse_button_press(zmk_mouse_button_t button) {
++    if (button >= ZMK_MOUSE_HID_NUM_BUTTONS) {
++        return -EINVAL;
++    }
++
++    explicit_button_counts[button]++;
++    LOG_DBG("Button %d count %d", button, explicit_button_counts[button]);
++    WRITE_BIT(explicit_buttons, button, true);
++    SET_MOUSE_BUTTONS(explicit_buttons);
++    return 0;
++}
++
++int zmk_hid_mouse_button_release(zmk_mouse_button_t button) {
++    if (button >= ZMK_MOUSE_HID_NUM_BUTTONS) {
++        return -EINVAL;
++    }
++
++    if (explicit_button_counts[button] <= 0) {
++        LOG_ERR("Tried to release button %d too often", button);
++        return -EINVAL;
++    }
++    explicit_button_counts[button]--;
++    LOG_DBG("Button %d count: %d", button, explicit_button_counts[button]);
++    if (explicit_button_counts[button] == 0) {
++        LOG_DBG("Button %d released", button);
++        WRITE_BIT(explicit_buttons, button, false);
++    }
++    SET_MOUSE_BUTTONS(explicit_buttons);
++    return 0;
++}
++
++int zmk_hid_mouse_buttons_press(zmk_mouse_button_flags_t buttons) {
++    for (zmk_mouse_button_t i = 0; i < ZMK_MOUSE_HID_NUM_BUTTONS; i++) {
++        if (buttons & BIT(i)) {
++            zmk_hid_mouse_button_press(i);
++        }
++    }
++    return 0;
++}
++
++int zmk_hid_mouse_buttons_release(zmk_mouse_button_flags_t buttons) {
++    for (zmk_mouse_button_t i = 0; i < ZMK_MOUSE_HID_NUM_BUTTONS; i++) {
++        if (buttons & BIT(i)) {
++            zmk_hid_mouse_button_release(i);
++        }
++    }
++    return 0;
++}
++
++void zmk_hid_mouse_movement_set(int16_t x, int16_t y) {
++    mouse_report.body.d_x = x;
++    mouse_report.body.d_y = y;
++    LOG_DBG("Mouse movement set to %d/%d", mouse_report.body.d_x, mouse_report.body.d_y);
++}
++
++void zmk_hid_mouse_movement_update(int16_t x, int16_t y) {
++    mouse_report.body.d_x += x;
++    mouse_report.body.d_y += y;
++    LOG_DBG("Mouse movement updated to %d/%d", mouse_report.body.d_x, mouse_report.body.d_y);
++}
++
++void zmk_hid_mouse_scroll_set(int8_t x, int8_t y) {
++    mouse_report.body.d_scroll_x = x;
++    mouse_report.body.d_scroll_y = y;
++    LOG_DBG("Mouse scroll set to %d/%d", mouse_report.body.d_scroll_x,
++            mouse_report.body.d_scroll_y);
++}
++
++void zmk_hid_mouse_scroll_update(int8_t x, int8_t y) {
++    mouse_report.body.d_scroll_x += x;
++    mouse_report.body.d_scroll_y += y;
++    LOG_DBG("Mouse scroll updated to X: %d/%d", mouse_report.body.d_scroll_x,
++            mouse_report.body.d_scroll_y);
++}
++
++void zmk_hid_mouse_clear(void) {
++    LOG_DBG("Mouse report cleared");
++    memset(&mouse_report.body, 0, sizeof(mouse_report.body));
++}
++
++struct zmk_hid_mouse_report *zmk_mouse_hid_get_mouse_report(void) {
++    return &mouse_report;
++}
++
++#endif // IS_ENABLED(CONFIG_ZMK_MOUSE)
++
++#if IS_ENABLED(CONFIG_ZMK_TRACKPAD)
++
++#define FINGER_INIT(idx, _rest)                                                                    \
++    { .contact_id = idx }
++
++static struct zmk_hid_ptp_report ptp_report = {
++    .report_id = ZMK_MOUSE_HID_REPORT_ID_DIGITIZER,
++};
++
++int zmk_mouse_hid_set_ptp_finger(struct zmk_ptp_finger finger) {
++    // First try to update existing
++    for (int i = 0; i < ptp_report.body.contact_count; i++) {
++        if (ptp_report.body.fingers[i].contact_id == finger.contact_id) {
++            ptp_report.body.fingers[i] = finger;
++            return 0;
++        }
++    }
++
++    if (ptp_report.body.contact_count == CONFIG_ZMK_TRACKPAD_FINGERS) {
++        return -ENOMEM;
++    }
++
++    ptp_report.body.fingers[ptp_report.body.contact_count++] = finger;
++
++    return 0;
++}
++
++void zmk_mouse_hid_ptp_clear_lifted_fingers(void) {
++    int valid_count = 0;
++    for (int i = 0; i < ptp_report.body.contact_count; i++) {
++        if (!ptp_report.body.fingers[i].tip_switch) {
++            continue;
++        }
++
++        ptp_report.body.fingers[valid_count++] = ptp_report.body.fingers[i];
++    }
++
++    for (int i = valid_count; i < ptp_report.body.contact_count; i++) {
++        memset(&ptp_report.body.fingers[i], 0, sizeof(struct zmk_ptp_finger));
++    }
++
++    ptp_report.body.contact_count = valid_count;
++
++    if (ptp_report.body.contact_count == 0) {
++        ptp_report.body.scan_time = 0;
++    }
++}
++
++void zmk_mouse_hid_ptp_update_scan_time(void) {
++    if (ptp_report.body.contact_count > 0) {
++        // scan time is in 100 microsecond units
++        ptp_report.body.scan_time = (uint16_t)((k_uptime_get_32() * 10) & 0xFFFF);
++    } else {
++        ptp_report.body.scan_time = 0;
++    }
++}
++
++void zmk_mouse_hid_ptp_clear(void) {
++    memset(&ptp_report.body, 0, sizeof(struct zmk_hid_ptp_report_body));
++}
++
++struct zmk_hid_ptp_report *zmk_mouse_hid_get_ptp_report() {
++    return &ptp_report;
++}
++
++struct zmk_hid_ptp_feature_selective_report selective_report = {
++    .report_id = ZMK_MOUSE_HID_REPORT_ID_FEATURE_PTP_SELECTIVE,
++    .body =
++        {
++            .surface_switch = 1,
++            .button_switch = 1,
++        },
++};
++
++struct zmk_hid_ptp_feature_selective_report *zmk_mouse_hid_ptp_get_feature_selective_report() {
++    return &selective_report;
++}
++
++void zmk_mouse_hid_ptp_set_feature_selective_report(bool surface_switch, bool button_switch);
++
++struct zmk_hid_ptp_feature_mode_report mode_report = {
++    .report_id = ZMK_MOUSE_HID_REPORT_ID_FEATURE_PTP_MODE,
++    .mode = 3,
++};
++
++struct zmk_hid_ptp_feature_mode_report *zmk_mouse_hid_ptp_get_feature_mode_report() {
++    return &mode_report;
++}
++
++void zmk_mouse_hid_ptp_set_feature_mode(uint8_t mode) { mode_report.mode = mode; }
++
++static struct zmk_hid_ptp_feature_certification_report cert_report = {
++    .report_id = ZMK_MOUSE_HID_REPORT_ID_FEATURE_PTPHQA,
++    .ptphqa_blob = {0xfc, 0x28, 0xfe, 0x84, 0x40, 0xcb, 0x9a, 0x87, 0x0d, 0xbe, 0x57, 0x3c, 0xb6,
++                    0x70, 0x09, 0x88, 0x07, 0x97, 0x2d, 0x2b, 0xe3, 0x38, 0x34, 0xb6, 0x6c, 0xed,
++                    0xb0, 0xf7, 0xe5, 0x9c, 0xf6, 0xc2, 0x2e, 0x84, 0x1b, 0xe8, 0xb4, 0x51, 0x78,
++                    0x43, 0x1f, 0x28, 0x4b, 0x7c, 0x2d, 0x53, 0xaf, 0xfc, 0x47, 0x70, 0x1b, 0x59,
++                    0x6f, 0x74, 0x43, 0xc4, 0xf3, 0x47, 0x18, 0x53, 0x1a, 0xa2, 0xa1, 0x71, 0xc7,
++                    0x95, 0x0e, 0x31, 0x55, 0x21, 0xd3, 0xb5, 0x1e, 0xe9, 0x0c, 0xba, 0xec, 0xb8,
++                    0x89, 0x19, 0x3e, 0xb3, 0xaf, 0x75, 0x81, 0x9d, 0x53, 0xb9, 0x41, 0x57, 0xf4,
++                    0x6d, 0x39, 0x25, 0x29, 0x7c, 0x87, 0xd9, 0xb4, 0x98, 0x45, 0x7d, 0xa7, 0x26,
++                    0x9c, 0x65, 0x3b, 0x85, 0x68, 0x89, 0xd7, 0x3b, 0xbd, 0xff, 0x14, 0x67, 0xf2,
++                    0x2b, 0xf0, 0x2a, 0x41, 0x54, 0xf0, 0xfd, 0x2c, 0x66, 0x7c, 0xf8, 0xc0, 0x8f,
++                    0x33, 0x13, 0x03, 0xf1, 0xd3, 0xc1, 0x0b, 0x89, 0xd9, 0x1b, 0x62, 0xcd, 0x51,
++                    0xb7, 0x80, 0xb8, 0xaf, 0x3a, 0x10, 0xc1, 0x8a, 0x5b, 0xe8, 0x8a, 0x56, 0xf0,
++                    0x8c, 0xaa, 0xfa, 0x35, 0xe9, 0x42, 0xc4, 0xd8, 0x55, 0xc3, 0x38, 0xcc, 0x2b,
++                    0x53, 0x5c, 0x69, 0x52, 0xd5, 0xc8, 0x73, 0x02, 0x38, 0x7c, 0x73, 0xb6, 0x41,
++                    0xe7, 0xff, 0x05, 0xd8, 0x2b, 0x79, 0x9a, 0xe2, 0x34, 0x60, 0x8f, 0xa3, 0x32,
++                    0x1f, 0x09, 0x78, 0x62, 0xbc, 0x80, 0xe3, 0x0f, 0xbd, 0x65, 0x20, 0x08, 0x13,
++                    0xc1, 0xe2, 0xee, 0x53, 0x2d, 0x86, 0x7e, 0xa7, 0x5a, 0xc5, 0xd3, 0x7d, 0x98,
++                    0xbe, 0x31, 0x48, 0x1f, 0xfb, 0xda, 0xaf, 0xa2, 0xa8, 0x6a, 0x89, 0xd6, 0xbf,
++                    0xf2, 0xd3, 0x32, 0x2a, 0x9a, 0xe4, 0xcf, 0x17, 0xb7, 0xb8, 0xf4, 0xe1, 0x33,
++                    0x08, 0x24, 0x8b, 0xc4, 0x43, 0xa5, 0xe5, 0x24, 0xc2},
++};
++
++struct zmk_hid_ptp_feature_certification_report *
++zmk_mouse_hid_ptp_get_feature_certification_report() {
++    return &cert_report;
++}
++
++static struct zmk_hid_ptp_feature_capabilities_report cap_report = {
++    .report_id = ZMK_MOUSE_HID_REPORT_ID_FEATURE_PTP_CAPABILITIES,
++    .body =
++        {
++            .max_touches = CONFIG_ZMK_TRACKPAD_FINGERS,
++            .pad_type = PTP_PAD_TYPE_DEPRESSIBLE,
++        },
++};
++
++struct zmk_hid_ptp_feature_capabilities_report *
++zmk_mouse_hid_ptp_get_feature_capabilities_report() {
++    return &cap_report;
++}
++
++#endif // IS_ENABLED(CONFIG_ZMK_TRACKPAD)
+diff --git a/app/src/mouse/hog.c b/app/src/mouse/hog.c
+new file mode 100644
+index 00000000..d647a28e
+--- /dev/null
++++ b/app/src/mouse/hog.c
+@@ -0,0 +1,409 @@
++/*
++ * Copyright (c) 2020 The ZMK Contributors
++ *
++ * SPDX-License-Identifier: MIT
++ */
++
++#include <zephyr/settings/settings.h>
++#include <zephyr/init.h>
++
++#include <zephyr/logging/log.h>
++
++LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
++
++#include <zephyr/bluetooth/bluetooth.h>
++#include <zephyr/bluetooth/gatt.h>
++
++#include <zmk/ble.h>
++#include <zmk/endpoints_types.h>
++#include <zmk/mouse/hog.h>
++#include <zmk/mouse/hid.h>
++
++enum {
++    HIDS_REMOTE_WAKE = BIT(0),
++    HIDS_NORMALLY_CONNECTABLE = BIT(1),
++};
++
++struct hids_info {
++    uint16_t version; /* version number of base USB HID Specification */
++    uint8_t code;     /* country HID Device hardware is localized for. */
++    uint8_t flags;
++} __packed;
++
++struct hids_report {
++    uint8_t id;   /* report id */
++    uint8_t type; /* report type */
++} __packed;
++
++static struct hids_info info = {
++    .version = 0x1101,
++    .code = 0x00,
++    .flags = HIDS_NORMALLY_CONNECTABLE | HIDS_REMOTE_WAKE,
++};
++
++enum {
++    HIDS_INPUT = 0x01,
++    HIDS_OUTPUT = 0x02,
++    HIDS_FEATURE = 0x03,
++};
++
++static struct hids_report mouse_input = {
++    .id = ZMK_MOUSE_HID_REPORT_ID_MOUSE,
++    .type = HIDS_INPUT,
++};
++
++#if IS_ENABLED(CONFIG_ZMK_TRACKPAD)
++
++// Windows PTP Collection
++
++static struct hids_report ptp_input = {
++    .id = ZMK_MOUSE_HID_REPORT_ID_DIGITIZER,
++    .type = HIDS_INPUT,
++};
++
++static struct hids_report ptp_caps = {
++    .id = ZMK_MOUSE_HID_REPORT_ID_FEATURE_PTP_CAPABILITIES,
++    .type = HIDS_FEATURE,
++};
++
++static struct hids_report ptp_hqa = {
++    .id = ZMK_MOUSE_HID_REPORT_ID_FEATURE_PTPHQA,
++    .type = HIDS_FEATURE,
++};
++
++// Configuration Collection
++
++static struct hids_report ptp_selective_reporting = {
++    .id = ZMK_MOUSE_HID_REPORT_ID_FEATURE_PTP_SELECTIVE,
++    .type = HIDS_FEATURE,
++};
++
++static struct hids_report ptp_mode = {
++    .id = ZMK_MOUSE_HID_REPORT_ID_FEATURE_PTP_MODE,
++    .type = HIDS_FEATURE,
++};
++
++#endif // IS_ENABLED(CONFIG_ZMK_TRACKPAD)
++
++static bool host_requests_notification = false;
++static uint8_t ctrl_point;
++
++static ssize_t read_hids_info(struct bt_conn *conn, const struct bt_gatt_attr *attr, void *buf,
++                              uint16_t len, uint16_t offset) {
++    return bt_gatt_attr_read(conn, attr, buf, len, offset, attr->user_data,
++                             sizeof(struct hids_info));
++}
++
++static ssize_t read_hids_report_ref(struct bt_conn *conn, const struct bt_gatt_attr *attr,
++                                    void *buf, uint16_t len, uint16_t offset) {
++    return bt_gatt_attr_read(conn, attr, buf, len, offset, attr->user_data,
++                             sizeof(struct hids_report));
++}
++
++static ssize_t read_hids_report_map(struct bt_conn *conn, const struct bt_gatt_attr *attr,
++                                    void *buf, uint16_t len, uint16_t offset) {
++    return bt_gatt_attr_read(conn, attr, buf, len, offset, zmk_mouse_hid_report_desc,
++                             sizeof(zmk_mouse_hid_report_desc));
++}
++
++static ssize_t read_hids_mouse_input_report(struct bt_conn *conn, const struct bt_gatt_attr *attr,
++                                            void *buf, uint16_t len, uint16_t offset) {
++    struct zmk_hid_mouse_report_body *report_body = &zmk_mouse_hid_get_mouse_report()->body;
++    return bt_gatt_attr_read(conn, attr, buf, len, offset, report_body,
++                             sizeof(struct zmk_hid_mouse_report_body));
++}
++
++#if IS_ENABLED(CONFIG_ZMK_TRACKPAD)
++
++static ssize_t read_hids_ptp_input_report(struct bt_conn *conn, const struct bt_gatt_attr *attr,
++                                          void *buf, uint16_t len, uint16_t offset) {
++    struct zmk_hid_ptp_report_body *report_body = &zmk_mouse_hid_get_ptp_report()->body;
++    LOG_DBG("Get PT Input at offset %d with len %d to fetch total size %d", offset, len,
++            sizeof(struct zmk_hid_ptp_report_body));
++    LOG_HEXDUMP_DBG(report_body, sizeof(struct zmk_hid_ptp_report_body), "PTP report");
++    return bt_gatt_attr_read(conn, attr, buf, len, offset, report_body,
++                             sizeof(struct zmk_hid_ptp_report_body));
++}
++
++static ssize_t read_hids_ptp_caps_report(struct bt_conn *conn, const struct bt_gatt_attr *attr,
++                                         void *buf, uint16_t len, uint16_t offset) {
++    LOG_DBG("Get CAPS");
++    struct zmk_hid_ptp_feature_capabilities_report_body *report_body =
++        &zmk_mouse_hid_ptp_get_feature_capabilities_report()->body;
++    return bt_gatt_attr_read(conn, attr, buf, len, offset, report_body,
++                             sizeof(struct zmk_hid_ptp_feature_capabilities_report_body));
++}
++
++static ssize_t read_hids_ptp_hqa_report(struct bt_conn *conn, const struct bt_gatt_attr *attr,
++                                        void *buf, uint16_t len, uint16_t offset) {
++    struct zmk_hid_ptp_feature_certification_report *report =
++        zmk_mouse_hid_ptp_get_feature_certification_report();
++    LOG_DBG("Get HQA at offset %d with len %d to fetch total size %d", offset, len,
++            sizeof(report->ptphqa_blob));
++    return bt_gatt_attr_read(conn, attr, buf, len, offset, &report->ptphqa_blob,
++                             sizeof(report->ptphqa_blob));
++}
++
++static ssize_t read_hids_ptp_mode(struct bt_conn *conn, const struct bt_gatt_attr *attr, void *buf,
++                                  uint16_t len, uint16_t offset) {
++    struct zmk_hid_ptp_feature_mode_report *report = zmk_mouse_hid_ptp_get_feature_mode_report();
++    LOG_DBG("Get PTP MODE at offset %d with len %d", offset, len);
++    return bt_gatt_attr_read(conn, attr, buf, len, offset, &report->mode, sizeof(uint8_t));
++}
++
++static ssize_t write_hids_ptp_mode(struct bt_conn *conn, const struct bt_gatt_attr *attr,
++                                   const void *buf, uint16_t len, uint16_t offset, uint8_t flags) {
++    if (offset != 0) {
++        LOG_ERR("Funky offset for mode");
++        return BT_GATT_ERR(BT_ATT_ERR_INVALID_OFFSET);
++    }
++    if (len != sizeof(uint8_t)) {
++        LOG_ERR("Wrong size for mode");
++        return BT_GATT_ERR(BT_ATT_ERR_INVALID_ATTRIBUTE_LEN);
++    }
++
++    uint8_t mode = *(uint8_t *)buf;
++    LOG_DBG("mode:  %d", mode);
++    // TODO: Do something with it!
++
++    return len;
++}
++
++static ssize_t read_hids_ptp_sel_reporting(struct bt_conn *conn, const struct bt_gatt_attr *attr,
++                                           void *buf, uint16_t len, uint16_t offset) {
++    struct zmk_hid_ptp_feature_selective_report *report =
++        zmk_mouse_hid_ptp_get_feature_selective_report();
++    LOG_DBG("Get PTP sel mode at offset %d with len %d", offset, len);
++    return bt_gatt_attr_read(conn, attr, buf, len, offset, &report->body,
++                             sizeof(struct zmk_hid_ptp_feature_selective_report_body));
++}
++
++static ssize_t write_hids_ptp_sel_reporting(struct bt_conn *conn, const struct bt_gatt_attr *attr,
++                                            const void *buf, uint16_t len, uint16_t offset,
++                                            uint8_t flags) {
++    if (offset != 0) {
++        LOG_ERR("Funky offset for sel reporting");
++        return BT_GATT_ERR(BT_ATT_ERR_INVALID_OFFSET);
++    }
++    if (len != sizeof(struct zmk_hid_ptp_feature_selective_report_body)) {
++        LOG_ERR("Wrong size for sel reporting");
++        return BT_GATT_ERR(BT_ATT_ERR_INVALID_ATTRIBUTE_LEN);
++    }
++
++    struct zmk_hid_ptp_feature_selective_report_body *report =
++        (struct zmk_hid_ptp_feature_selective_report_body *)buf;
++    LOG_DBG("Selective: surface: %d, button: %d", report->surface_switch, report->button_switch);
++    // TODO: Do something with it!
++
++    return len;
++}
++
++#endif // IS_ENABLED(CONFIG_ZMK_TRACKPAD)
++
++static void input_ccc_changed(const struct bt_gatt_attr *attr, uint16_t value) {
++    LOG_DBG("Input CC changed for %d", attr->handle);
++    host_requests_notification = (value == BT_GATT_CCC_NOTIFY) ? 1 : 0;
++}
++
++static ssize_t write_ctrl_point(struct bt_conn *conn, const struct bt_gatt_attr *attr,
++                                const void *buf, uint16_t len, uint16_t offset, uint8_t flags) {
++    uint8_t *value = attr->user_data;
++
++    if (offset + len > sizeof(ctrl_point)) {
++        return BT_GATT_ERR(BT_ATT_ERR_INVALID_OFFSET);
++    }
++
++    memcpy(value + offset, buf, len);
++
++    return len;
++}
++
++/* HID Service Declaration */
++BT_GATT_SERVICE_DEFINE(
++    mouse_hog_svc, BT_GATT_PRIMARY_SERVICE(BT_UUID_HIDS),
++    //    BT_GATT_CHARACTERISTIC(BT_UUID_HIDS_PROTOCOL_MODE, BT_GATT_CHRC_WRITE_WITHOUT_RESP,
++    //                           BT_GATT_PERM_WRITE, NULL, write_proto_mode, &proto_mode),
++
++    BT_GATT_CHARACTERISTIC(BT_UUID_HIDS_REPORT_MAP, BT_GATT_CHRC_READ, BT_GATT_PERM_READ_ENCRYPT,
++                           read_hids_report_map, NULL, NULL),
++
++    BT_GATT_CHARACTERISTIC(BT_UUID_HIDS_REPORT, BT_GATT_CHRC_READ | BT_GATT_CHRC_NOTIFY,
++                           BT_GATT_PERM_READ_ENCRYPT, read_hids_mouse_input_report, NULL, NULL),
++    BT_GATT_CCC(input_ccc_changed, BT_GATT_PERM_READ_ENCRYPT | BT_GATT_PERM_WRITE_ENCRYPT),
++    BT_GATT_DESCRIPTOR(BT_UUID_HIDS_REPORT_REF, BT_GATT_PERM_READ_ENCRYPT, read_hids_report_ref,
++                       NULL, &mouse_input),
++
++#if IS_ENABLED(CONFIG_ZMK_TRACKPAD)
++    BT_GATT_CHARACTERISTIC(BT_UUID_HIDS_REPORT, BT_GATT_CHRC_READ | BT_GATT_CHRC_NOTIFY,
++                           BT_GATT_PERM_READ_ENCRYPT, read_hids_ptp_input_report, NULL, NULL),
++    BT_GATT_CCC(input_ccc_changed, BT_GATT_PERM_READ_ENCRYPT | BT_GATT_PERM_WRITE_ENCRYPT),
++    BT_GATT_DESCRIPTOR(BT_UUID_HIDS_REPORT_REF, BT_GATT_PERM_READ_ENCRYPT, read_hids_report_ref,
++                       NULL, &ptp_input),
++
++    BT_GATT_CHARACTERISTIC(BT_UUID_HIDS_REPORT, BT_GATT_CHRC_READ | BT_GATT_CHRC_WRITE,
++                           BT_GATT_PERM_READ_ENCRYPT | BT_GATT_PERM_WRITE_ENCRYPT,
++                           read_hids_ptp_caps_report, NULL, NULL),
++    BT_GATT_DESCRIPTOR(BT_UUID_HIDS_REPORT_REF, BT_GATT_PERM_READ_ENCRYPT, read_hids_report_ref,
++                       NULL, &ptp_caps),
++
++    BT_GATT_CHARACTERISTIC(BT_UUID_HIDS_REPORT, BT_GATT_CHRC_READ | BT_GATT_CHRC_WRITE,
++                           BT_GATT_PERM_READ_ENCRYPT | BT_GATT_PERM_WRITE_ENCRYPT,
++                           read_hids_ptp_hqa_report, NULL, NULL),
++    BT_GATT_DESCRIPTOR(BT_UUID_HIDS_REPORT_REF, BT_GATT_PERM_READ_ENCRYPT, read_hids_report_ref,
++                       NULL, &ptp_hqa),
++
++    BT_GATT_CHARACTERISTIC(BT_UUID_HIDS_REPORT, BT_GATT_CHRC_READ | BT_GATT_CHRC_WRITE,
++                           BT_GATT_PERM_READ_ENCRYPT | BT_GATT_PERM_WRITE_ENCRYPT,
++                           read_hids_ptp_mode, write_hids_ptp_mode, NULL),
++    BT_GATT_DESCRIPTOR(BT_UUID_HIDS_REPORT_REF, BT_GATT_PERM_READ_ENCRYPT, read_hids_report_ref,
++                       NULL, &ptp_mode),
++
++    BT_GATT_CHARACTERISTIC(BT_UUID_HIDS_REPORT, BT_GATT_CHRC_READ | BT_GATT_CHRC_WRITE,
++                           BT_GATT_PERM_READ_ENCRYPT | BT_GATT_PERM_WRITE_ENCRYPT,
++                           read_hids_ptp_sel_reporting, write_hids_ptp_sel_reporting, NULL),
++    BT_GATT_DESCRIPTOR(BT_UUID_HIDS_REPORT_REF, BT_GATT_PERM_READ_ENCRYPT, read_hids_report_ref,
++                       NULL, &ptp_selective_reporting),
++
++#endif // IS_ENABLED(CONFIG_ZMK_TRACKPAD)
++
++    BT_GATT_CHARACTERISTIC(BT_UUID_HIDS_INFO, BT_GATT_CHRC_READ, BT_GATT_PERM_READ, read_hids_info,
++                           NULL, &info),
++
++    BT_GATT_CHARACTERISTIC(BT_UUID_HIDS_CTRL_POINT, BT_GATT_CHRC_WRITE_WITHOUT_RESP,
++                           BT_GATT_PERM_WRITE, NULL, write_ctrl_point, &ctrl_point));
++
++static struct bt_conn *destination_connection(void) {
++    struct bt_conn *conn;
++    bt_addr_le_t *addr = zmk_ble_active_profile_addr();
++
++    if (!bt_addr_le_cmp(addr, BT_ADDR_LE_ANY)) {
++        LOG_WRN("Not sending, no active address for current profile");
++        return NULL;
++    } else if ((conn = bt_conn_lookup_addr_le(BT_ID_DEFAULT, addr)) == NULL) {
++        LOG_WRN("Not sending, not connected to active profile");
++        return NULL;
++    }
++
++    return conn;
++}
++
++K_THREAD_STACK_DEFINE(mouse_hog_q_stack, CONFIG_ZMK_BLE_THREAD_STACK_SIZE);
++
++static struct k_work_q mouse_hog_work_q;
++
++K_MSGQ_DEFINE(zmk_hog_mouse_msgq, sizeof(struct zmk_hid_mouse_report_body),
++              CONFIG_ZMK_BLE_MOUSE_REPORT_QUEUE_SIZE, 4);
++
++void send_mouse_report_callback(struct k_work *work) {
++    struct zmk_hid_mouse_report_body report;
++    while (k_msgq_get(&zmk_hog_mouse_msgq, &report, K_NO_WAIT) == 0) {
++        struct bt_conn *conn = destination_connection();
++        if (conn == NULL) {
++            return;
++        }
++
++        struct bt_gatt_notify_params notify_params = {
++            .attr = &mouse_hog_svc.attrs[5],
++            .data = &report,
++            .len = sizeof(report),
++        };
++
++        int err = bt_gatt_notify_cb(conn, &notify_params);
++        if (err == -EPERM) {
++            bt_conn_set_security(conn, BT_SECURITY_L2);
++        } else if (err) {
++            LOG_DBG("Error notifying %d", err);
++        }
++
++        bt_conn_unref(conn);
++    }
++};
++
++K_WORK_DEFINE(hog_mouse_work, send_mouse_report_callback);
++
++int zmk_mouse_hog_send_mouse_report(struct zmk_hid_mouse_report_body *report) {
++    int err = k_msgq_put(&zmk_hog_mouse_msgq, report, K_MSEC(100));
++    if (err) {
++        switch (err) {
++        case -EAGAIN: {
++            LOG_WRN("Consumer message queue full, popping first message and queueing again");
++            struct zmk_hid_mouse_report_body discarded_report;
++            k_msgq_get(&zmk_hog_mouse_msgq, &discarded_report, K_NO_WAIT);
++            return zmk_mouse_hog_send_mouse_report(report);
++        }
++        default:
++            LOG_WRN("Failed to queue mouse report to send (%d)", err);
++            return err;
++        }
++    }
++
++    k_work_submit_to_queue(&mouse_hog_work_q, &hog_mouse_work);
++
++    return 0;
++};
++
++#if IS_ENABLED(CONFIG_ZMK_TRACKPAD)
++
++K_MSGQ_DEFINE(zmk_hog_ptp_msgq, sizeof(struct zmk_hid_ptp_report_body),
++              CONFIG_ZMK_BLE_MOUSE_REPORT_QUEUE_SIZE, 4);
++
++void send_ptp_report_callback(struct k_work *work) {
++    struct zmk_hid_ptp_report_body report;
++    while (k_msgq_get(&zmk_hog_ptp_msgq, &report, K_NO_WAIT) == 0) {
++        struct bt_conn *conn = destination_connection();
++        if (conn == NULL) {
++            return;
++        }
++
++        struct bt_gatt_notify_params notify_params = {
++            .attr = &mouse_hog_svc.attrs[7],
++            .data = &report,
++            .len = sizeof(report),
++        };
++
++        int err = bt_gatt_notify_cb(conn, &notify_params);
++        if (err == -EPERM) {
++            bt_conn_set_security(conn, BT_SECURITY_L2);
++        } else if (err) {
++            LOG_DBG("Error notifying %d", err);
++        }
++
++        bt_conn_unref(conn);
++    }
++};
++
++K_WORK_DEFINE(hog_ptp_work, send_ptp_report_callback);
++
++int zmk_mouse_hog_send_ptp_report(struct zmk_hid_ptp_report_body *report) {
++    int err = k_msgq_put(&zmk_hog_ptp_msgq, report, K_MSEC(100));
++    if (err) {
++        switch (err) {
++        case -EAGAIN: {
++            LOG_WRN("Consumer message queue full, popping first message and queueing again");
++            struct zmk_hid_ptp_report_body discarded_report;
++            k_msgq_get(&zmk_hog_ptp_msgq, &discarded_report, K_NO_WAIT);
++            return zmk_mouse_hog_send_ptp_report(report);
++        }
++        default:
++            LOG_WRN("Failed to queue mouse report to send (%d)", err);
++            return err;
++        }
++    }
++
++    k_work_submit_to_queue(&mouse_hog_work_q, &hog_ptp_work);
++
++    return 0;
++};
++#endif // IS_ENABLED(CONFIG_ZMK_TRACKPAD)
++
++static int zmk_mouse_hog_init(void) {
++    static const struct k_work_queue_config queue_config = {.name =
++                                                                "Mouse HID Over GATT Send Work"};
++    k_work_queue_start(&mouse_hog_work_q, mouse_hog_q_stack,
++                       K_THREAD_STACK_SIZEOF(mouse_hog_q_stack), CONFIG_ZMK_BLE_THREAD_PRIORITY,
++                       &queue_config);
++
++    return 0;
++}
++
++SYS_INIT(zmk_mouse_hog_init, APPLICATION, CONFIG_ZMK_BLE_INIT_PRIORITY);

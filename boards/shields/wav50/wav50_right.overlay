@@ -35,6 +35,7 @@
     trackpad_listener {
         compatible = "zmk,input-listener";
         device = <&trackpad>;
+        mode = "trackpad";
     };
 };
 
