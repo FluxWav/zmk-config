@@ -120,6 +120,7 @@ jobs:
           git -c safe.directory="$PWD" clean -fd
           git -c safe.directory="$PWD" apply "${GITHUB_WORKSPACE}/patches/zmk-zephyr41-ptp.patch"
           git -c safe.directory="$PWD" apply "${GITHUB_WORKSPACE}/patches/zmk-zephyr41-ptp-sources.patch"
+          git -c safe.directory="$PWD" apply "${GITHUB_WORKSPACE}/patches/zmk-zephyr41-split-input-compat.patch"
 
       - name: Check ZMK revision
         working-directory: ${{ env.base_dir }}

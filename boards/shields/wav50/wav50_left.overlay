@@ -8,6 +8,28 @@
     };
 };
 
-&left_encoder {
+&i2c0 {
     status = "okay";
+
+    trackpad: maxtouch@4a {
+        compatible = "microchip,maxtouch";
+        status = "okay";
+        reg = <0x4a>;
+        chg-gpios = <&gpio0 29 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+        sensor-width = <42>;
+        sensor-height = <50>;
+        max-touch-points = <5>;
+        invert-x;
+        invert-y;
+        touch_threshold = <12>;
+        touch_hysteresis = <5>;
+        gain = <8>;
+        active-acq-time-ms = <10>;
+        idle-acq-time-ms = <32>;
+        repeat-each-cycle;
+    };
+};
+
+&left_trackpad_split {
+    device = <&trackpad>;
 };

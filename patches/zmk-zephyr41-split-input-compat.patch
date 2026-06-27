@@ -1,0 +1,55 @@
+diff --git a/app/CMakeLists.txt b/app/CMakeLists.txt
+index 624bb1a7..7f1dac28 100644
+--- a/app/CMakeLists.txt
++++ b/app/CMakeLists.txt
+@@ -45,5 +45,8 @@ target_sources_ifdef(CONFIG_ZMK_BEHAVIOR_SOFT_OFF app PRIVATE src/behaviors/beha
+ target_sources_ifdef(CONFIG_ZMK_BEHAVIOR_SOFT_OFF app PRIVATE src/behaviors/behavior_soft_off.c)
+ add_subdirectory_ifdef(CONFIG_ZMK_POINTING src/pointing/)
++if(CONFIG_ZMK_INPUT_SPLIT AND NOT CONFIG_ZMK_POINTING)
++  target_sources(app PRIVATE src/pointing/input_split.c)
++endif()
+ if ((NOT CONFIG_ZMK_SPLIT) OR CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
+   target_sources(app PRIVATE src/hid.c)
+   target_sources_ifdef(CONFIG_ZMK_TRACKPAD app PRIVATE src/mouse/input_listener.c)
+diff --git a/app/src/mouse/Kconfig b/app/src/mouse/Kconfig
+index 389a4f6a..cd446dd2 100644
+--- a/app/src/mouse/Kconfig
++++ b/app/src/mouse/Kconfig
+@@ -17,7 +17,7 @@ endif
+ 
+ config ZMK_TRACKPAD
+     bool "Trackpad support"
+-    select ENABLE_HID_INT_OUT_EP if ZMK_USB
++    select ENABLE_HID_INT_OUT_EP if ZMK_USB && (!ZMK_SPLIT || ZMK_SPLIT_ROLE_CENTRAL)
+ 
+ if ZMK_TRACKPAD
+ 
+@@ -51,3 +51,26 @@
+ endif # ZMK_TRACKPAD
+ 
+-endif # ZMK_MOUSE
+\ No newline at end of file
++endif # ZMK_MOUSE
++
++# The precision-touchpad port uses the legacy mouse HID path, but peripheral
++# input forwarding is otherwise coupled to the newer pointing subsystem.
++if !ZMK_POINTING
++
++config ZMK_INPUT_SPLIT
++    bool "Split input support"
++    default y
++    depends on DT_HAS_ZMK_INPUT_SPLIT_ENABLED && ZMK_SPLIT
++
++if ZMK_INPUT_SPLIT
++
++config ZMK_INPUT_SPLIT_INIT_PRIORITY
++    int "Input Split initialization priority"
++    default INPUT_INIT_PRIORITY
++
++config ZMK_INPUT_SPLIT_MAX_TRACKED_KEYS
++    int "Input Split max tracked keys to release on peripheral disconnect"
++    default 5
++
++endif # ZMK_INPUT_SPLIT
++
++endif # !ZMK_POINTING

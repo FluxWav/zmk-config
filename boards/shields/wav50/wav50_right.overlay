@@ -41,3 +41,7 @@
         mode = "trackpad";
     };
 };
+
+&left_trackpad_listener {
+    status = "okay";
+};
