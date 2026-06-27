@@ -1,4 +1,4 @@
-#include <physical_layouts.dtsi>
+#include "physical_layouts.dtsi"
 
 / {
     default_layout: physical_layout_0 {
