@@ -1,12 +1,18 @@
 #include <behaviors.dtsi>
 #include <dt-bindings/zmk/keys.h>
 
+#ifdef CONFIG_ZMK_STUDIO
+#define WAV50_STUDIO_UNLOCK &studio_unlock
+#else
+#define WAV50_STUDIO_UNLOCK &none
+#endif
+
 / {
     keymap {
         compatible = "zmk,keymap";
 
         default_layer {
-            bindings = <&kp TAB &kp Q &kp W &kp F &kp P &studio_unlock &kp J &kp L &kp U &kp Y &kp SEMI &studio_unlock &kp BSPC &kp A &kp R &kp S &kp T &kp G &kp M &kp N &kp E &kp I &kp O &kp SQT &kp Z &kp X &kp C &kp D &kp V &kp SPACE &kp SPACE &kp K &kp H &kp COMMA &kp DOT &kp FSLH &kp RBKT &kp LBKT &kp LBKT &kp RBKT &kp RETURN &kp SPACE &kp SPACE &kp SPACE &kp SPACE &kp RETURN>;
+            bindings = <&kp TAB &kp Q &kp W &kp F &kp P WAV50_STUDIO_UNLOCK &kp J &kp L &kp U &kp Y &kp SEMI WAV50_STUDIO_UNLOCK &kp BSPC &kp A &kp R &kp S &kp T &kp G &kp M &kp N &kp E &kp I &kp O &kp SQT &kp Z &kp X &kp C &kp D &kp V &kp SPACE &kp SPACE &kp K &kp H &kp COMMA &kp DOT &kp FSLH &kp RBKT &kp LBKT &kp LBKT &kp RBKT &kp RETURN &kp SPACE &kp SPACE &kp SPACE &kp SPACE &kp RETURN>;
             sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN &inc_dec_kp C_VOL_UP C_VOL_DN>;
         };
 
