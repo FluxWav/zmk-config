@@ -45,3 +45,7 @@
 &left_trackpad_listener {
     status = "okay";
 };
+
+&wav50_unlock {
+    bindings = <&studio_unlock>;
+};
