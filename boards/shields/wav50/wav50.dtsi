@@ -25,6 +25,15 @@
 };
 
 / {
+    behaviors {
+        wav50_unlock: wav50_unlock {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            display-name = "Studio Unlock";
+            bindings = <&none>;
+        };
+    };
+
     chosen {
         zmk,kscan = &kscan0;
         zmk,physical-layout = &default_layout;

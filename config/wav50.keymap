@@ -2,15 +2,6 @@
 #include <dt-bindings/zmk/keys.h>
 
 / {
-    behaviors {
-        wav50_unlock: wav50_unlock {
-            compatible = "zmk,behavior-macro";
-            #binding-cells = <0>;
-            display-name = "Studio Unlock";
-            bindings = <&none>;
-        };
-    };
-
     keymap {
         compatible = "zmk,keymap";
 
