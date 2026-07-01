@@ -11,11 +11,11 @@
         default_layer {
             display-name = "Base";
             bindings = <
-&kp TAB   &kp Q           &kp W      &kp F     &kp P          &kp B      &kp J      &kp L  &kp U  &kp Y      &kp SEMI  &kp BACKSLASH
-&kp BSPC  &kp A           &kp R      &kp S     &kp T          &kp G      &kp M      &kp N  &kp E  &kp I      &kp O     &kp SQT
-&kp Z     &kp X           &kp C      &kp D     &kp V          &kp SPACE  &kp SPACE  &kp K  &kp H  &kp COMMA  &kp DOT   &kp FSLH
-&tog 9    &mo 2           &kp MINUS  &kp RBKT
-&mo 5     &kp LEFT_SHIFT  &mo 3      &mo 3     &mt RET SPACE  &mo 5
+&kp TAB   &kp Q           &kp W      &kp F  &kp P          &kp B      &kp J      &kp L  &kp U  &kp Y      &kp SEMI  &kp BACKSLASH
+&kp BSPC  &kp A           &kp R      &kp S  &kp T          &kp G      &kp M      &kp N  &kp E  &kp I      &kp O     &kp SQT
+&kp Z     &kp X           &kp C      &kp D  &kp V          &kp SPACE  &kp SPACE  &kp K  &kp H  &kp COMMA  &kp DOT   &kp FSLH
+&tog 9    &mo 2           &kp MINUS  &mo 2
+&mo 5     &kp LEFT_SHIFT  &mo 3      &mo 3  &mt RET SPACE  &mo 5
             >;
 
             sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN &inc_dec_kp C_VOL_UP C_VOL_DN>;
@@ -35,7 +35,7 @@
         up {
             display-name = "Layer 2";
             bindings = <
-&trans  &trans        &trans            &studio_unlock  &trans        &sl 8   &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans        &trans            &studio_unlock  &trans        &sl 8   &sl 8   &trans  &trans  &trans  &trans  &trans
 &trans  &sk LEFT_GUI  &sk LEFT_CONTROL  &trans          &sk LEFT_ALT  &sl 7   &trans  &trans  &trans  &trans  &trans  &trans
 &trans  &trans        &trans            &trans          &trans        &trans  &trans  &trans  &trans  &trans  &trans  &trans
 &trans  &trans        &trans            &trans
@@ -103,7 +103,7 @@
             bindings = <
 &bt BT_CLR      &trans  &trans  &trans      &trans        &trans        &ext_power EP_OFF  &trans  &trans  &trans  &trans  &trans
 &bt BT_CLR_ALL  &trans  &trans  &trans      &bt BT_PRV    &bt BT_SEL 0  &bl BL_OFF         &trans  &trans  &trans  &trans  &trans
-&trans          &trans  &trans  &bt BT_NXT  &bt BT_SEL 1  &trans        &trans             &trans  &trans  &trans  &trans  &trans
+&bootloader     &trans  &trans  &bt BT_NXT  &bt BT_SEL 1  &trans        &trans             &trans  &trans  &trans  &trans  &bootloader
 &trans          &trans  &trans  &trans
 &trans          &trans  &to 0   &trans      &trans        &trans
             >;
@@ -117,6 +117,16 @@
 &kp FSLH  &kp DOT   &kp COMMA  &kp H   &kp K   &trans  &trans  &trans  &trans  &trans  &trans  &trans
 &tog 9    &trans    &trans     &trans
 &trans    &trans    &trans     &trans  &trans  &trans
+            >;
+        };
+
+        layer_10 {
+            bindings = <
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans
             >;
         };
     };
