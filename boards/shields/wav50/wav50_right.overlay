@@ -17,7 +17,7 @@
 
     trackpad: maxtouch@4a {
         compatible = "microchip,maxtouch";
-        status = "okay";
+        status = "disabled";
         reg = <0x4a>;
         chg-gpios = <&gpio0 29 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
         sensor-width = <42>;
@@ -36,13 +36,14 @@
 / {
     trackpad_listener {
         compatible = "zmk,input-listener";
+        status = "disabled";
         device = <&trackpad>;
         mode = "trackpad";
     };
 };
 
 &left_trackpad_listener {
-    status = "okay";
+    status = "disabled";
 };
 
 &wav50_unlock {
