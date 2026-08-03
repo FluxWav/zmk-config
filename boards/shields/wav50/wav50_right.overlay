@@ -27,7 +27,7 @@
         invert-y;
         touch_threshold = <18>;
         touch_hysteresis = <8>;
-        gain = <4>;
+        gain = <8>;
         active-acq-time-ms = <10>;
         idle-acq-time-ms = <32>;
         repeat-each-cycle;
