@@ -25,11 +25,12 @@
         max-touch-points = <5>;
         invert-x;
         invert-y;
-        touch_threshold = <12>;
-        touch_hysteresis = <5>;
+        touch_threshold = <18>;
+        touch_hysteresis = <8>;
         gain = <4>;
         active-acq-time-ms = <10>;
-        idle-acq-time-ms = <255>;
+        idle-acq-time-ms = <32>;
+        repeat-each-cycle;
     };
 };
 
