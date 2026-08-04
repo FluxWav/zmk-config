@@ -570,7 +570,7 @@ new file mode 100644
 index 00000000..23a59011
 --- /dev/null
 +++ b/app/src/mouse/input_listener.c
-@@ -0,0 +1,325 @@
+@@ -0,0 +1,331 @@
 +/*
 + * Copyright (c) 2020 The ZMK Contributors
 + *
@@ -634,7 +634,7 @@ index 00000000..23a59011
 +            bool pending_data;
 +            struct input_listener_xy_data data;
 +            uint8_t finger_idx;
-+            bool touched;
++            bool touched[CONFIG_ZMK_TRACKPAD_FINGERS];
 +        } ptp;
 +#endif // IS_ENABLED(CONFIG_ZMK_TRACKPAD)
 +    };
@@ -680,17 +680,22 @@ index 00000000..23a59011
 +#if IS_ENABLED(CONFIG_ZMK_TRACKPAD)
 +
 +static int send_ptp_finger_to_hid(struct input_listener_data *data) {
++    if (data->ptp.finger_idx >= CONFIG_ZMK_TRACKPAD_FINGERS) {
++        data->ptp.pending_data = false;
++        data->ptp.data.y = data->ptp.data.x = 0;
++        return -EINVAL;
++    }
++
 +    struct zmk_ptp_finger finger = {.contact_id = data->ptp.finger_idx};
 +    finger.x = data->ptp.data.x;
 +    finger.y = data->ptp.data.y;
 +    finger.touch_valid = 1;
-+    finger.tip_switch = data->ptp.touched ? 1 : 0;
++    finger.tip_switch = data->ptp.touched[data->ptp.finger_idx] ? 1 : 0;
 +
 +    int err = zmk_mouse_hid_set_ptp_finger(finger);
 +
 +    data->ptp.pending_data = false;
 +    data->ptp.data.y = data->ptp.data.x = 0;
-+    data->ptp.touched = false;
 +
 +    return err;
 +}
@@ -750,7 +755,9 @@ index 00000000..23a59011
 +#if IS_ENABLED(CONFIG_ZMK_TRACKPAD)
 +    case INPUT_BTN_TOUCH:
 +        if (config->mode == INPUT_LISTENER_MODE_PTP) {
-+            data->ptp.touched = evt->value > 0;
++            if (data->ptp.finger_idx < CONFIG_ZMK_TRACKPAD_FINGERS) {
++                data->ptp.touched[data->ptp.finger_idx] = evt->value > 0;
++            }
 +        }
 +#endif // IS_ENABLED(CONFIG_ZMK_TRACKPAD)
 +    default:
