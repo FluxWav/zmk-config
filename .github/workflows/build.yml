@@ -122,6 +122,13 @@ jobs:
           git -c safe.directory="$PWD" apply "${GITHUB_WORKSPACE}/patches/zmk-zephyr41-ptp-sources.patch"
           git -c safe.directory="$PWD" apply "${GITHUB_WORKSPACE}/patches/zmk-zephyr41-split-input-compat.patch"
 
+      - name: Apply maXTouch tuning patches
+        working-directory: ${{ env.base_dir }}/maxtouch-zephyr-module
+        run: |
+          git -c safe.directory="$PWD" reset --hard HEAD
+          git -c safe.directory="$PWD" clean -fd
+          git -c safe.directory="$PWD" apply "${GITHUB_WORKSPACE}/patches/maxtouch-movement-hysteresis.patch"
+
       - name: Check ZMK revision
         working-directory: ${{ env.base_dir }}
         run: |

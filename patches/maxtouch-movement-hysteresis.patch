@@ -1,0 +1,15 @@
+diff --git a/drivers/input/input_maxtouch.c b/drivers/input/input_maxtouch.c
+index fc844dd..56e7f5a 100644
+--- a/drivers/input/input_maxtouch.c
++++ b/drivers/input/input_maxtouch.c
+@@ -394,8 +394,8 @@ static int mxt_load_config(const struct device *dev,
+ 
+         // These two fields implement a simple filter for reducing jitter, but large
+         // values cause the pointer to stick in place before moving.
+-        t100_conf.movhysti = 10; // Initial movement hysteresis
+-        t100_conf.movhystn = 4; // Next movement hysteresis
++        t100_conf.movhysti = 16; // Initial movement hysteresis
++        t100_conf.movhystn = 6; // Next movement hysteresis
+ 
+         t100_conf.tchdiup = 4; // MXT_UP touch detection integration - the number of cycles before the sensor decides an MXT_UP event has occurred
+         t100_conf.tchdidown = 2; // MXT_DOWN touch detection integration - the number of cycles before the sensor decides an MXT_DOWN event has occurred
